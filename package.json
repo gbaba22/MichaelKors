@@ -1,0 +1,40 @@
+{
+  "name": "ai-capability-assessment",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI Opportunity assessment tool: business users score AI opportunities, admins configure the model and see real-time Impact vs Feasibility analytics.",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "tsx watch --no-warnings src/server/index.ts",
+    "dev:client": "vite",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build",
+    "build:server": "tsc -p tsconfig.server.json && node -e \"require('fs').copyFileSync('src/server/schema.sql','dist/server/schema.sql')\"",
+    "start": "node --no-warnings dist/server/index.js",
+    "seed": "tsx --no-warnings src/server/seed.ts",
+    "import:xlsx": "node scripts/import-xlsx.mjs",
+    "test": "tsx --no-warnings --test tests/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "test:e2e": "node tests/e2e.mjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}

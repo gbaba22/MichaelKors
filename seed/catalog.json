@@ -1,0 +1,785 @@
+{
+  "source": "AI_Opportunity_Assessment_v2.xlsx",
+  "generatedBy": "scripts/import-xlsx.mjs",
+  "scale": [
+    0,
+    5,
+    15,
+    30,
+    50,
+    75,
+    100
+  ],
+  "overall": {
+    "impactWeight": 0.6,
+    "feasibilityWeight": 0.4
+  },
+  "factors": [
+    {
+      "name": "Makes Money",
+      "question": "Incremental revenue?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.35,
+      "sortOrder": 0,
+      "levels": [
+        {
+          "score": 0,
+          "label": "No impact"
+        },
+        {
+          "score": 5,
+          "label": "Negligible"
+        },
+        {
+          "score": 15,
+          "label": "Small single area"
+        },
+        {
+          "score": 30,
+          "label": "Moderate area"
+        },
+        {
+          "score": 50,
+          "label": "Significant measurable"
+        },
+        {
+          "score": 75,
+          "label": "Major multi-channel"
+        },
+        {
+          "score": 100,
+          "label": "Transformational enterprise"
+        }
+      ]
+    },
+    {
+      "name": "Saves Money",
+      "question": "Cost reduction?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.35,
+      "sortOrder": 1,
+      "levels": [
+        {
+          "score": 0,
+          "label": "No savings"
+        },
+        {
+          "score": 5,
+          "label": "Minimal"
+        },
+        {
+          "score": 15,
+          "label": "Small team"
+        },
+        {
+          "score": 30,
+          "label": "Department gains"
+        },
+        {
+          "score": 50,
+          "label": "Significant savings"
+        },
+        {
+          "score": 75,
+          "label": "Major recurring savings"
+        },
+        {
+          "score": 100,
+          "label": "Enterprise optimization"
+        }
+      ]
+    },
+    {
+      "name": "Increases Loyalty",
+      "question": "Retention impact?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.15,
+      "sortOrder": 2,
+      "levels": [
+        {
+          "score": 0,
+          "label": "None"
+        },
+        {
+          "score": 5,
+          "label": "Marginal"
+        },
+        {
+          "score": 15,
+          "label": "Limited"
+        },
+        {
+          "score": 30,
+          "label": "Noticeable"
+        },
+        {
+          "score": 50,
+          "label": "Strong retention"
+        },
+        {
+          "score": 75,
+          "label": "Major relationship value"
+        },
+        {
+          "score": 100,
+          "label": "Transformational loyalty"
+        }
+      ]
+    },
+    {
+      "name": "Protect/Grow Market Share",
+      "question": "Competitive impact?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.15,
+      "sortOrder": 3,
+      "levels": [
+        {
+          "score": 0,
+          "label": "None"
+        },
+        {
+          "score": 5,
+          "label": "Minimal"
+        },
+        {
+          "score": 15,
+          "label": "Limited"
+        },
+        {
+          "score": 30,
+          "label": "Maintain competitiveness"
+        },
+        {
+          "score": 50,
+          "label": "Meaningful advantage"
+        },
+        {
+          "score": 75,
+          "label": "Strong differentiator"
+        },
+        {
+          "score": 100,
+          "label": "Category leadership"
+        }
+      ]
+    },
+    {
+      "name": "Data Readiness",
+      "question": "Data available?",
+      "category": "feasibility",
+      "inverted": false,
+      "weight": 0.3,
+      "sortOrder": 4,
+      "levels": [
+        {
+          "score": 0,
+          "label": "None"
+        },
+        {
+          "score": 5,
+          "label": "Poor"
+        },
+        {
+          "score": 15,
+          "label": "Gaps"
+        },
+        {
+          "score": 30,
+          "label": "Partial"
+        },
+        {
+          "score": 50,
+          "label": "Most available"
+        },
+        {
+          "score": 75,
+          "label": "Largely trusted"
+        },
+        {
+          "score": 100,
+          "label": "Production ready"
+        }
+      ]
+    },
+    {
+      "name": "Process Readiness",
+      "question": "Process maturity?",
+      "category": "feasibility",
+      "inverted": false,
+      "weight": 0.2,
+      "sortOrder": 5,
+      "levels": [
+        {
+          "score": 0,
+          "label": "Undefined"
+        },
+        {
+          "score": 5,
+          "label": "Inconsistent"
+        },
+        {
+          "score": 15,
+          "label": "Informal"
+        },
+        {
+          "score": 30,
+          "label": "Documented"
+        },
+        {
+          "score": 50,
+          "label": "Standardized"
+        },
+        {
+          "score": 75,
+          "label": "Mature KPIs"
+        },
+        {
+          "score": 100,
+          "label": "Highly optimized"
+        }
+      ]
+    },
+    {
+      "name": "Implementation/System Complexity",
+      "question": "Difficulty?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.2,
+      "sortOrder": 6,
+      "levels": [
+        {
+          "score": 0,
+          "label": "None"
+        },
+        {
+          "score": 5,
+          "label": "Simple"
+        },
+        {
+          "score": 15,
+          "label": "Minor"
+        },
+        {
+          "score": 30,
+          "label": "Limited"
+        },
+        {
+          "score": 50,
+          "label": "Moderate"
+        },
+        {
+          "score": 75,
+          "label": "Complex"
+        },
+        {
+          "score": 100,
+          "label": "Enterprise transformation"
+        }
+      ]
+    },
+    {
+      "name": "Ease of MVP",
+      "question": "Pilot speed?",
+      "category": "feasibility",
+      "inverted": false,
+      "weight": 0.15,
+      "sortOrder": 7,
+      "levels": [
+        {
+          "score": 0,
+          "label": "Not feasible"
+        },
+        {
+          "score": 5,
+          "label": "Major prep"
+        },
+        {
+          "score": 15,
+          "label": "Difficult"
+        },
+        {
+          "score": 30,
+          "label": "Significant effort"
+        },
+        {
+          "score": 50,
+          "label": "Feasible"
+        },
+        {
+          "score": 75,
+          "label": "Quick MVP"
+        },
+        {
+          "score": 100,
+          "label": "Rapid compelling MVP"
+        }
+      ]
+    },
+    {
+      "name": "Change Risk",
+      "question": "Adoption risk?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.1,
+      "sortOrder": 8,
+      "levels": [
+        {
+          "score": 0,
+          "label": "None"
+        },
+        {
+          "score": 5,
+          "label": "Minimal"
+        },
+        {
+          "score": 15,
+          "label": "Limited"
+        },
+        {
+          "score": 30,
+          "label": "Moderate"
+        },
+        {
+          "score": 50,
+          "label": "Significant"
+        },
+        {
+          "score": 75,
+          "label": "Major challenge"
+        },
+        {
+          "score": 100,
+          "label": "Major disruption"
+        }
+      ]
+    },
+    {
+      "name": "Cost",
+      "question": "Investment required?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.05,
+      "sortOrder": 9,
+      "levels": [
+        {
+          "score": 0,
+          "label": "Existing only"
+        },
+        {
+          "score": 5,
+          "label": "Negligible"
+        },
+        {
+          "score": 15,
+          "label": "Small"
+        },
+        {
+          "score": 30,
+          "label": "Moderate"
+        },
+        {
+          "score": 50,
+          "label": "Significant"
+        },
+        {
+          "score": 75,
+          "label": "Large multi-year"
+        },
+        {
+          "score": 100,
+          "label": "Strategic enterprise"
+        }
+      ]
+    }
+  ],
+  "teams": [
+    "Asset Protection",
+    "Creative Services",
+    "CRM",
+    "Customer Care",
+    "Digital Commerce",
+    "Distribution Operations",
+    "Facilities",
+    "Finance",
+    "FP&A",
+    "Logistics",
+    "Marketing",
+    "Merchandising",
+    "Planning",
+    "Procurement",
+    "Store Operations",
+    "Supply Chain"
+  ],
+  "opportunities": [
+    {
+      "name": "Demand Forecasting",
+      "businessArea": "Supply Chain",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 0,
+      "teams": [
+        "Supply Chain",
+        "Planning"
+      ]
+    },
+    {
+      "name": "Inventory Optimization",
+      "businessArea": "Supply Chain",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 1,
+      "teams": [
+        "Supply Chain",
+        "Merchandising"
+      ]
+    },
+    {
+      "name": "Automated Replenishment Recommendations",
+      "businessArea": "Supply Chain",
+      "businessGoal": "Improve Operational Efficiency",
+      "description": "",
+      "sortOrder": 2,
+      "teams": [
+        "Supply Chain"
+      ]
+    },
+    {
+      "name": "Stock Transfer Optimization",
+      "businessArea": "Supply Chain",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 3,
+      "teams": [
+        "Supply Chain",
+        "Logistics"
+      ]
+    },
+    {
+      "name": "Supplier Risk Monitoring",
+      "businessArea": "Supply Chain",
+      "businessGoal": "Reduce Risk",
+      "description": "",
+      "sortOrder": 4,
+      "teams": [
+        "Procurement"
+      ]
+    },
+    {
+      "name": "Distribution Center Labor Optimization",
+      "businessArea": "Supply Chain",
+      "businessGoal": "Improve Operational Efficiency",
+      "description": "",
+      "sortOrder": 5,
+      "teams": [
+        "Distribution Operations"
+      ]
+    },
+    {
+      "name": "Workforce Scheduling Optimization",
+      "businessArea": "Store & Retail Operations",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 6,
+      "teams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "name": "Store Manager Copilot",
+      "businessArea": "Store & Retail Operations",
+      "businessGoal": "Improve Employee Productivity",
+      "description": "",
+      "sortOrder": 7,
+      "teams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "name": "Task Prioritization Assistant",
+      "businessArea": "Store & Retail Operations",
+      "businessGoal": "Improve Operational Efficiency",
+      "description": "",
+      "sortOrder": 8,
+      "teams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "name": "Loss Prevention Anomaly Detection",
+      "businessArea": "Store & Retail Operations",
+      "businessGoal": "Reduce Risk",
+      "description": "",
+      "sortOrder": 9,
+      "teams": [
+        "Asset Protection"
+      ]
+    },
+    {
+      "name": "In-Store Associate Copilot",
+      "businessArea": "Store & Retail Operations",
+      "businessGoal": "Improve Customer Experience",
+      "description": "",
+      "sortOrder": 10,
+      "teams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "name": "Energy Consumption Optimization",
+      "businessArea": "Store & Retail Operations",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 11,
+      "teams": [
+        "Facilities"
+      ]
+    },
+    {
+      "name": "Product Recommendation Engine",
+      "businessArea": "eCommerce",
+      "businessGoal": "Increase Revenue",
+      "description": "",
+      "sortOrder": 12,
+      "teams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "name": "Dynamic Product Bundling",
+      "businessArea": "eCommerce",
+      "businessGoal": "Increase Revenue",
+      "description": "",
+      "sortOrder": 13,
+      "teams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "name": "Conversational Shopping Assistant",
+      "businessArea": "eCommerce",
+      "businessGoal": "Improve Customer Experience",
+      "description": "",
+      "sortOrder": 14,
+      "teams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "name": "Personalized Search Results",
+      "businessArea": "eCommerce",
+      "businessGoal": "Increase Revenue",
+      "description": "",
+      "sortOrder": 15,
+      "teams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "name": "Return Prediction & Prevention",
+      "businessArea": "eCommerce",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 16,
+      "teams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "name": "AI Style Advisor",
+      "businessArea": "eCommerce",
+      "businessGoal": "Win Younger Audience",
+      "description": "",
+      "sortOrder": 17,
+      "teams": [
+        "Digital Commerce",
+        "Marketing"
+      ]
+    },
+    {
+      "name": "Customer Segmentation AI",
+      "businessArea": "Marketing & Branding",
+      "businessGoal": "Increase Revenue",
+      "description": "",
+      "sortOrder": 18,
+      "teams": [
+        "Marketing"
+      ]
+    },
+    {
+      "name": "Marketing Asset Generation",
+      "businessArea": "Marketing & Branding",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 19,
+      "teams": [
+        "Creative Services"
+      ]
+    },
+    {
+      "name": "Campaign Performance Optimization",
+      "businessArea": "Marketing & Branding",
+      "businessGoal": "Improve Operational Efficiency",
+      "description": "",
+      "sortOrder": 20,
+      "teams": [
+        "Marketing"
+      ]
+    },
+    {
+      "name": "Trend Detection & Social Listening",
+      "businessArea": "Marketing & Branding",
+      "businessGoal": "Win Younger Audience",
+      "description": "",
+      "sortOrder": 21,
+      "teams": [
+        "Marketing"
+      ]
+    },
+    {
+      "name": "Competitive Intelligence Assistant",
+      "businessArea": "Marketing & Branding",
+      "businessGoal": "Protect/Grow Market Share",
+      "description": "",
+      "sortOrder": 22,
+      "teams": [
+        "Marketing"
+      ]
+    },
+    {
+      "name": "Personalized Offer Generation",
+      "businessArea": "Marketing & Branding",
+      "businessGoal": "Increase Loyalty",
+      "description": "",
+      "sortOrder": 23,
+      "teams": [
+        "CRM",
+        "Marketing"
+      ]
+    },
+    {
+      "name": "Invoice Processing Automation",
+      "businessArea": "Finance",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 24,
+      "teams": [
+        "Finance"
+      ]
+    },
+    {
+      "name": "Financial Close Copilot",
+      "businessArea": "Finance",
+      "businessGoal": "Improve Operational Efficiency",
+      "description": "",
+      "sortOrder": 25,
+      "teams": [
+        "Finance"
+      ]
+    },
+    {
+      "name": "Fraud & Anomaly Detection",
+      "businessArea": "Finance",
+      "businessGoal": "Reduce Risk",
+      "description": "",
+      "sortOrder": 26,
+      "teams": [
+        "Finance"
+      ]
+    },
+    {
+      "name": "Cash Flow Forecasting",
+      "businessArea": "Finance",
+      "businessGoal": "Improve Planning",
+      "description": "",
+      "sortOrder": 27,
+      "teams": [
+        "FP&A"
+      ]
+    },
+    {
+      "name": "Vendor Spend Optimization",
+      "businessArea": "Finance",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 28,
+      "teams": [
+        "Procurement",
+        "Finance"
+      ]
+    },
+    {
+      "name": "Finance Analyst Copilot",
+      "businessArea": "Finance",
+      "businessGoal": "Improve Employee Productivity",
+      "description": "",
+      "sortOrder": 29,
+      "teams": [
+        "Finance"
+      ]
+    },
+    {
+      "name": "Customer Service Chatbot",
+      "businessArea": "Customer Care",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 30,
+      "teams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "name": "Agent Assist Copilot",
+      "businessArea": "Customer Care",
+      "businessGoal": "Improve Customer Experience",
+      "description": "",
+      "sortOrder": 31,
+      "teams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "name": "Case Summarization",
+      "businessArea": "Customer Care",
+      "businessGoal": "Improve Operational Efficiency",
+      "description": "",
+      "sortOrder": 32,
+      "teams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "name": "Proactive Customer Issue Resolution",
+      "businessArea": "Customer Care",
+      "businessGoal": "Increase Loyalty",
+      "description": "",
+      "sortOrder": 33,
+      "teams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "name": "Contact Center Demand Forecasting",
+      "businessArea": "Customer Care",
+      "businessGoal": "Reduce Cost",
+      "description": "",
+      "sortOrder": 34,
+      "teams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "name": "Voice-of-Customer Insights Engine",
+      "businessArea": "Customer Care",
+      "businessGoal": "Improve Customer Experience",
+      "description": "",
+      "sortOrder": 35,
+      "teams": [
+        "Customer Care"
+      ]
+    }
+  ]
+}
