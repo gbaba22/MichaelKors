@@ -104,6 +104,7 @@ p { margin: 0; }
 
 /* inputs */
 label.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; font-weight: 500; color: var(--ink-secondary); }
+label.field[hidden] { display: none; }
 input[type='text'], input[type='email'], input[type='date'], select, textarea {
   font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--surface);
   border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 9px 11px; width: 100%;
@@ -230,7 +231,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T14:26:13Z",
+  "generatedAt": "2026-09-15T14:30:31Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1196,10 +1197,31 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
           opps.map((o) => el('option', { value: String(o.id) }, o.name)),
         ),
       ),
+      el('option', { value: 'other' }, 'Other (not in this list)'),
     ]);
+
+    const otherNameInput = el('input', { type: 'text', id: 'f-opportunity-other-name', placeholder: 'Name this AI opportunity' });
+    const otherNameField = el('label', { class: 'field', id: 'opportunity-other-field', hidden: true }, [
+      'New opportunity name',
+      otherNameInput,
+    ]);
+    otherNameInput.addEventListener('input', () => {
+      if (currentOpportunity && currentOpportunity.id === 'other') {
+        currentOpportunity.name = otherNameInput.value.trim();
+      }
+      updateSubmitEnabled();
+    });
+
     select.addEventListener('change', () => {
-      const id = Number(select.value);
-      currentOpportunity = CONFIG.opportunities.find((o) => o.id === id) || null;
+      if (select.value === 'other') {
+        currentOpportunity = { id: 'other', name: otherNameInput.value.trim(), businessArea: 'Other', businessGoal: '', relevantTeams: [] };
+        otherNameField.hidden = false;
+      } else {
+        const id = Number(select.value);
+        currentOpportunity = CONFIG.opportunities.find((o) => o.id === id) || null;
+        otherNameField.hidden = true;
+        otherNameInput.value = '';
+      }
       currentAnswers = {};
       renderOpportunityContext();
       renderFactorsCard();
@@ -1208,6 +1230,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     });
 
     card.appendChild(el('label', { class: 'field' }, ['Select an AI opportunity to score', select]));
+    card.appendChild(otherNameField);
     card.appendChild(el('div', { id: 'opportunity-context' }));
     return card;
   }
@@ -1335,8 +1358,9 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     const ownerName = $('#f-owner-name').value.trim();
     const ownerTeam = $('#f-owner-team').value.trim();
     const answered = Object.keys(currentAnswers).length;
+    const opportunityReady = currentOpportunity && (currentOpportunity.id !== 'other' || currentOpportunity.name);
     const complete =
-      facilitatorName && ownerName && ownerTeam && currentOpportunity && answered === CONFIG.factors.length;
+      facilitatorName && ownerName && ownerTeam && opportunityReady && answered === CONFIG.factors.length;
     btn.disabled = !complete;
   }
 
@@ -1624,6 +1648,13 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     const feasibility = round(categoryScore(CONFIG.factors, currentAnswers, 'feasibility'), 1);
     const overall = round(overallScore(impact, feasibility, CONFIG.overall), 1);
 
+    // A custom "Other" opportunity has no catalog id - derive a stable one
+    // from its name so repeat submissions of the same typed-in name group
+    // together in Analyze Results, the same way catalog ids do.
+    const isOtherOpportunity = currentOpportunity.id === 'other';
+    const opportunityName = isOtherOpportunity ? $('#f-opportunity-other-name').value.trim() : currentOpportunity.name;
+    const opportunityId = isOtherOpportunity ? `other-${slugify(opportunityName)}` : currentOpportunity.id;
+
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       submittedAt: new Date().toISOString(),
@@ -1633,8 +1664,8 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       // Always the submission date - there's no date field for the
       // facilitator to fill in.
       interviewDate: new Date().toISOString().slice(0, 10),
-      opportunityId: currentOpportunity.id,
-      opportunityName: currentOpportunity.name,
+      opportunityId: opportunityId,
+      opportunityName: opportunityName,
       businessArea: currentOpportunity.businessArea,
       businessGoal: currentOpportunity.businessGoal,
       relevantTeams: currentOpportunity.relevantTeams,
@@ -1679,7 +1710,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     if (!saved) {
       // Fallback: unsupported browser, not connected, declined, or the
       // write above failed - a completed interview is never lost.
-      const base = `assessment_${slugify(currentOpportunity.name)}_${timestampSlug()}`;
+      const base = `assessment_${slugify(opportunityName)}_${timestampSlug()}`;
       downloadJson(record, base + '.json');
       downloadCsv(buildCsv([record]), base + '.csv');
     }
@@ -1689,10 +1720,10 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     $('#submit-feedback').innerHTML = '';
     const noticeIsError = !saved && !!fileSyncError && fileSyncMode === 'blocked';
     const noticeText = saved
-      ? `Saved "${currentOpportunity.name}" to ${DIRECT_SAVE_JSON_NAME}. Ready for the next interview.`
+      ? `Saved "${opportunityName}" to ${DIRECT_SAVE_JSON_NAME}. Ready for the next interview.`
       : noticeIsError
-        ? `Couldn’t save to the connected file (${fileSyncError}); downloaded "${currentOpportunity.name}" as a separate file instead.`
-        : `Saved "${currentOpportunity.name}": JSON and CSV downloaded. Ready for the next interview.`;
+        ? `Couldn’t save to the connected file (${fileSyncError}); downloaded "${opportunityName}" as a separate file instead.`
+        : `Saved "${opportunityName}": JSON and CSV downloaded. Ready for the next interview.`;
     $('#submit-feedback').appendChild(el('span', { class: `notice ${noticeIsError ? 'error' : 'success'}` }, noticeText));
 
     // Move on to the next opportunity; keep facilitator details for the next interview.
@@ -1701,6 +1732,8 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     $('#f-opportunity').value = '';
     $('#f-owner-name').value = '';
     $('#f-owner-team').value = '';
+    $('#f-opportunity-other-name').value = '';
+    $('#opportunity-other-field').hidden = true;
     renderOpportunityContext();
     renderFactorsCard();
     updateLiveScores();
