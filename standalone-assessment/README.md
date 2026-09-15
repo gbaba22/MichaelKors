@@ -38,9 +38,12 @@ Michael Kors / Capri framework. No install, no server, no database: open
    tab and drop in the `.json` file(s) this tool has produced: either one
    laptop's whole accumulated file, or a batch of older per-submission
    files, or a mix of both (from this laptop or emailed in from others).
-   You'll see every response, a per-opportunity summary (mean Impact/
-   Feasibility/Overall across however many people scored it), and an
-   Impact-vs-Feasibility chart, plus buttons to export both as CSV.
+   You'll see the **Loaded Opportunities Summary** stat tiles, **By
+   Individual Discovery** (every response, including Executive Sponsor),
+   a **By AI Opportunity** rollup (mean Impact/Feasibility/Overall across
+   however many people scored it), and an Impact-vs-Feasibility chart whose
+   dots are shaded by mean Overall Score (pale = lower, deep blue =
+   higher), plus buttons to export both tables as CSV.
 
 Nothing here ever calls out to a network. Files stay on the machine that
 generated them until someone explicitly downloads, emails, or uploads one.
