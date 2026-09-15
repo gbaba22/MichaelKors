@@ -134,6 +134,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
 button.ghost { border-color: transparent; background: transparent; color: var(--ink-secondary); }
 button.small { padding: 5px 10px; font-size: 0.8rem; }
+button.link-button { border: none; background: none; padding: 0; font-size: 0.85rem; color: var(--accent); }
+button.link-button:hover:not(:disabled) { background: none; text-decoration: underline; }
 .form-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
 
 /* chips */
@@ -175,10 +177,6 @@ button.small { padding: 5px 10px; font-size: 0.8rem; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-td.comments-cell { white-space: normal; max-width: 320px; vertical-align: top; }
-td.comments-cell .comment-item { margin-bottom: 4px; }
-td.comments-cell .comment-item:last-child { margin-bottom: 0; }
-td.comments-cell .comment-factor { color: var(--ink); font-weight: 600; }
 th { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted); }
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { color: var(--ink); }
@@ -210,6 +208,29 @@ details.data-source > summary::-webkit-details-marker { display: none; }
 details.data-source > summary::before { content: '▸ '; color: var(--ink-muted); }
 details.data-source[open] > summary::before { content: '▾ '; }
 details.data-source .data-source-body { padding: 0 16px 16px; }
+
+/* response detail popup */
+dialog.detail-dialog {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink);
+  padding: 0; width: min(560px, calc(100vw - 32px)); max-height: min(720px, calc(100vh - 64px));
+  box-shadow: var(--shadow);
+}
+dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
+.detail-dialog-body { padding: 20px; max-height: min(720px, calc(100vh - 64px)); overflow-y: auto; }
+.detail-header { display: flex; align-items: flex-start; gap: 12px; }
+.detail-header .spacer { flex: 1; }
+.detail-close { border: none; background: none; padding: 4px; font-size: 1.1rem; line-height: 1; color: var(--ink-muted); }
+.detail-close:hover { background: none; color: var(--ink); }
+.detail-stakeholders { margin-top: 6px; font-size: 0.85rem; color: var(--ink-secondary); }
+.detail-scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.detail-factor-group { margin-top: 18px; }
+.detail-factor { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.detail-factor:last-child { border-bottom: none; }
+.detail-factor-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.detail-factor-name { font-weight: 600; font-size: 0.9rem; }
+.detail-factor-bucket { font-size: 0.75rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+.detail-factor-level { font-size: 0.82rem; color: var(--ink-muted); margin-top: 2px; }
+.detail-factor-comment { font-size: 0.85rem; color: var(--ink-secondary); margin-top: 6px; padding: 8px 10px; background: var(--surface-sunken); border-radius: var(--radius-sm); }
 
 @media (max-width: 780px) {
   .scale { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -253,11 +274,15 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     <div id="view-score"></div>
     <div id="view-combine" hidden></div>
   </div>
+
+  <dialog id="response-detail-dialog" class="detail-dialog">
+    <div class="detail-dialog-body" id="response-detail-body"></div>
+  </dialog>
 </div>
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T17:59:43Z",
+  "generatedAt": "2026-09-15T18:21:44Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1947,7 +1972,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
               c.label + (sortState.field === c.key ? (sortState.dir === 'asc' ? ' ↑' : ' ↓') : ''),
             ),
           ),
-          el('th', {}, 'Factor Comments'),
+          el('th', {}, ''),
         ]),
       ),
     );
@@ -1964,7 +1989,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
           el('td', { class: 'num' }, fmt(r.feasibilityScore)),
           el('td', { class: 'num', style: 'font-weight: 600;' }, fmt(r.overallScore)),
           el('td', { class: 'small muted' }, new Date(r.submittedAt).toLocaleDateString()),
-          el('td', { class: 'comments-cell small secondary-text' }, factorCommentsCell(r)),
+          el('td', {}, el('button', { class: 'link-button', onclick: () => openResponseDetail(r) }, 'More details')),
         ]),
       );
     }
@@ -1973,16 +1998,71 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     wrap.appendChild(table);
     card.appendChild(wrap);
   }
-  /** Every factor with a non-empty comment on this response, in the
-   * framework's factor order - a compact stand-in for the CSV's ten
-   * separate "<Factor> Comments" columns. */
-  function factorCommentsCell(record) {
-    if (!record.comments) return '—';
-    const items = CONFIG.factors
-      .map((f) => ({ name: f.name, text: (record.comments[f.key] || '').trim() }))
-      .filter((c) => c.text);
-    if (items.length === 0) return '—';
-    return items.map((c) => el('div', { class: 'comment-item' }, [el('span', { class: 'comment-factor' }, c.name + ': '), c.text]));
+
+  /** Popup with everything about one response: stakeholders, score
+   * summary, and every factor's raw score (matched back to its rubric
+   * level for the human-readable wording) plus that factor's comment. */
+  function openResponseDetail(record) {
+    const dialog = $('#response-detail-dialog');
+    const body = $('#response-detail-body');
+    body.innerHTML = '';
+
+    body.appendChild(
+      el('div', { class: 'detail-header' }, [
+        el('div', {}, [
+          el('h2', {}, record.opportunityName),
+          el('div', { class: 'row', style: 'margin-top: 4px;' }, [el('span', { class: 'chip' }, record.businessArea)]),
+        ]),
+        el('div', { class: 'spacer' }),
+        el('button', { class: 'detail-close', 'aria-label': 'Close', onclick: () => dialog.close() }, '✕'),
+      ]),
+    );
+    body.appendChild(
+      el('div', { class: 'detail-stakeholders' }, [
+        `Business Owner: ${record.businessOwnerName}${record.businessOwnerTeam ? ` (${record.businessOwnerTeam})` : ''}`,
+        el('br'),
+        `Executive Sponsor: ${record.executiveSponsorName || '—'}`,
+        el('br'),
+        `Facilitator: ${record.facilitatorName}`,
+        el('br'),
+        `Submitted: ${new Date(record.submittedAt).toLocaleString()}`,
+      ]),
+    );
+    body.appendChild(
+      el('div', { class: 'detail-scores' }, [
+        statTile('Impact', record.impactScore),
+        statTile('Feasibility', record.feasibilityScore),
+        statTile('Overall', record.overallScore),
+      ]),
+    );
+
+    for (const category of ['impact', 'feasibility']) {
+      const factors = CONFIG.factors.filter((f) => f.category === category);
+      if (factors.length === 0) continue;
+      const group = el('div', { class: 'detail-factor-group' }, [
+        el('h3', {}, category === 'impact' ? 'Impact Scoring' : 'Feasibility Scoring'),
+      ]);
+      for (const f of factors) {
+        const raw = record.scores ? record.scores[f.key] : null;
+        if (raw == null) continue;
+        const levelIndex = f.levels.findIndex((l) => l.score === raw);
+        const bucket = levelIndex >= 0 ? scoreLabel(f, levelIndex, raw) : String(raw);
+        const levelText = levelIndex >= 0 ? f.levels[levelIndex].label : null;
+        const comment = record.comments ? (record.comments[f.key] || '').trim() : '';
+        const factorEl = el('div', { class: 'detail-factor' }, [
+          el('div', { class: 'detail-factor-head' }, [
+            el('span', { class: 'detail-factor-name' }, f.name),
+            el('span', { class: 'detail-factor-bucket' }, bucket),
+          ]),
+          levelText ? el('div', { class: 'detail-factor-level' }, levelText) : null,
+          comment ? el('div', { class: 'detail-factor-comment' }, comment) : null,
+        ]);
+        group.appendChild(factorEl);
+      }
+      body.appendChild(group);
+    }
+
+    dialog.showModal();
   }
   function sortRecords(records, state) {
     const dir = state.dir === 'asc' ? 1 : -1;
