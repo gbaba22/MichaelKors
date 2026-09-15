@@ -142,6 +142,7 @@ button.small { padding: 5px 10px; font-size: 0.8rem; }
 .factor-head .name { font-weight: 600; font-size: 1rem; }
 .factor-question { font-size: 0.82rem; color: var(--ink-muted); margin-top: 2px; }
 .scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.factor-comment { display: block; width: 100%; margin-top: 8px; min-height: 40px; resize: vertical; font-size: 0.85rem; }
 .scale-option {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
   padding: 9px 10px; min-height: 74px; border: 1px solid var(--line); border-radius: var(--radius-sm);
@@ -199,7 +200,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   <header class="topbar">
     <div class="brand">AI Opportunity Assessment <small id="framework-tag">standalone</small></div>
     <nav class="tabs" aria-label="Sections">
-      <button type="button" id="tab-score" aria-current="true">Score an Opportunity</button>
+      <button type="button" id="tab-score" aria-current="true">AI Discovery</button>
       <button type="button" id="tab-combine" aria-current="false">Analyze Results</button>
     </nav>
     <div class="spacer"></div>
@@ -231,7 +232,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T15:44:03Z",
+  "generatedAt": "2026-09-15T15:54:57Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1055,16 +1056,18 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   function buildCsv(records) {
     const header = [
       'Submitted At', 'Facilitator Name',
-      'Full Name', 'Team / Business Function', 'Interview Date',
+      'Business Owner Name', 'Executive Sponsor Name', 'Business Function', 'Interview Date',
       'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams',
       ...CONFIG.factors.map((f) => f.name),
+      ...CONFIG.factors.map((f) => `${f.name} Comments`),
       'Impact Score', 'Feasibility Score', 'AI Opportunity Score',
     ];
     const rows = records.map((r) => [
       r.submittedAt, r.facilitatorName,
-      r.businessOwnerName, r.businessOwnerTeam, r.interviewDate,
+      r.businessOwnerName, r.executiveSponsorName, r.businessOwnerTeam, r.interviewDate,
       r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '),
       ...CONFIG.factors.map((f) => (r.scores[f.key] != null ? r.scores[f.key] : '')),
+      ...CONFIG.factors.map((f) => (r.comments && r.comments[f.key]) || ''),
       r.impactScore, r.feasibilityScore, r.overallScore,
     ]);
     return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n');
@@ -1142,6 +1145,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   /* ======================================================== SCORE VIEW == */
   let currentOpportunity = null;
   let currentAnswers = {};
+  let currentComments = {};
 
   function buildScoreView() {
     viewScore.innerHTML = '';
@@ -1159,20 +1163,19 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
   function buildMetaCard() {
     const card = el('div', { class: 'card stack' });
-    card.appendChild(el('h2', {}, 'Interview details'));
+    card.appendChild(el('h2', {}, 'Stakeholders for Discovery'));
     const grid = el('div', { class: 'form-grid' });
 
-    // Facilitator defaults to the usual AI CoE facilitator; editable in case
-    // someone else is running a given interview.
     const facilitatorName = el('input', { type: 'text', id: 'f-facilitator-name', required: true, autocomplete: 'name' });
-    facilitatorName.value = 'Gaurav B';
     const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
+    const executiveSponsor = el('input', { type: 'text', id: 'f-executive-sponsor' });
     const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', required: true, list: 'team-options' });
     const teamList = el('datalist', { id: 'team-options' }, CONFIG.teams.map((t) => el('option', { value: t })));
 
     grid.appendChild(el('label', { class: 'field' }, ['Facilitator Name', facilitatorName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Full Name', ownerName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Team / Business Function', ownerTeam, teamList]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business Owner Name', ownerName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Executive Sponsor Name', executiveSponsor]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business Function', ownerTeam, teamList]));
 
     card.appendChild(grid);
     [facilitatorName, ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateSubmitEnabled));
@@ -1223,6 +1226,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
         otherNameInput.value = '';
       }
       currentAnswers = {};
+      currentComments = {};
       renderOpportunityContext();
       renderFactorsCard();
       updateLiveScores();
@@ -1290,6 +1294,18 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       scale.appendChild(btn);
     });
     block.appendChild(scale);
+
+    const commentInput = el('textarea', {
+      class: 'factor-comment',
+      rows: 2,
+      placeholder: 'Optional comments on this factor…',
+      'aria-label': factor.name + ' comments',
+    });
+    commentInput.value = currentComments[factor.key] || '';
+    commentInput.addEventListener('input', () => {
+      currentComments[factor.key] = commentInput.value;
+    });
+    block.appendChild(commentInput);
     return block;
   }
 
@@ -1346,6 +1362,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
   function resetOpportunityFields() {
     currentAnswers = {};
+    currentComments = {};
     renderFactorsCard();
     updateLiveScores();
     updateSubmitEnabled();
@@ -1660,6 +1677,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       submittedAt: new Date().toISOString(),
       facilitatorName: $('#f-facilitator-name').value.trim(),
       businessOwnerName: $('#f-owner-name').value.trim(),
+      executiveSponsorName: $('#f-executive-sponsor').value.trim(),
       businessOwnerTeam: $('#f-owner-team').value.trim(),
       // Always the submission date - there's no date field for the
       // facilitator to fill in.
@@ -1670,6 +1688,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       businessGoal: currentOpportunity.businessGoal,
       relevantTeams: currentOpportunity.relevantTeams,
       scores: Object.assign({}, currentAnswers),
+      comments: Object.assign({}, currentComments),
       impactScore: impact,
       feasibilityScore: feasibility,
       overallScore: overall,
@@ -1734,8 +1753,10 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     // Move on to the next opportunity; keep facilitator details for the next interview.
     currentOpportunity = null;
     currentAnswers = {};
+    currentComments = {};
     $('#f-opportunity').value = '';
     $('#f-owner-name').value = '';
+    $('#f-executive-sponsor').value = '';
     $('#f-owner-team').value = '';
     $('#f-opportunity-other-name').value = '';
     $('#opportunity-other-field').hidden = true;

@@ -7,10 +7,13 @@ Michael Kors / Capri framework. No install, no server, no database: open
 ## Using it
 
 1. **Open `index.html`** (double-click it, or drag it into a browser tab).
-2. **Score an Opportunity**: fill in the facilitator and business owner
-   details, pick an AI opportunity, and score all 10 factors using the
-   plain-language labels shown for each level. Every option shows the
-   rubric wording for that level. The Estimated Score panel updates as you go.
+2. **AI Discovery**: fill in the **Stakeholders for Discovery** details
+   (Facilitator Name, Business Owner Name, Executive Sponsor Name,
+   Business Function), pick an AI opportunity, and score all 10 factors
+   using the plain-language labels shown for each level. Every option shows
+   the rubric wording for that level, and each factor has an optional
+   comment box for any context worth capturing alongside the score. The
+   Estimated Score panel updates as you go.
 3. Click **Submit Assessment**.
    - **In Chrome or Edge**, the first time you submit you'll be asked to
      choose (or create) a folder. From then on every submission is saved
