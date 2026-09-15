@@ -199,7 +199,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     <div class="brand">AI Opportunity Assessment <small id="framework-tag">standalone</small></div>
     <nav class="tabs" aria-label="Sections">
       <button type="button" id="tab-score" aria-current="true">Score an Opportunity</button>
-      <button type="button" id="tab-combine" aria-current="false">Combine Results</button>
+      <button type="button" id="tab-combine" aria-current="false">Analyze Results</button>
     </nav>
     <div class="spacer"></div>
   </header>
@@ -230,7 +230,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T14:21:57Z",
+  "generatedAt": "2026-09-15T14:26:13Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -991,7 +991,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     }
     return node;
   };
-  const fmt = (n, digits) => (n == null ? '—' : n.toFixed(digits == null ? 1 : digits));
+  const fmt = (n, digits) => (n == null ? '-' : n.toFixed(digits == null ? 1 : digits));
   const round = (n, digits) => {
     if (n == null) return null;
     const f = Math.pow(10, digits == null ? 1 : digits);
@@ -1560,7 +1560,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
         el(
           'p',
           { class: 'notice' },
-          'Direct file saving isn’t available in this browser — each submission downloads its own JSON and CSV file instead. Chrome or Edge can save directly into one running file.',
+          'Direct file saving isn’t available in this browser. Each submission downloads its own JSON and CSV file instead; Chrome or Edge can save directly into one running file.',
         ),
       );
       return;
@@ -1613,7 +1613,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       el(
         'p',
         { class: 'small muted' },
-        'The first submission will ask you to choose (or create) a folder — every response after that saves straight into one file there.',
+        'The first submission will ask you to choose (or create) a folder; every response after that saves straight into one file there.',
       ),
     );
     card.appendChild(el('button', { class: 'small', onclick: changeDirectory }, 'Connect a folder now (optional)'));
@@ -1691,8 +1691,8 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     const noticeText = saved
       ? `Saved "${currentOpportunity.name}" to ${DIRECT_SAVE_JSON_NAME}. Ready for the next interview.`
       : noticeIsError
-        ? `Couldn’t save to the connected file (${fileSyncError}) — downloaded "${currentOpportunity.name}" as a separate file instead.`
-        : `Saved "${currentOpportunity.name}" — JSON and CSV downloaded. Ready for the next interview.`;
+        ? `Couldn’t save to the connected file (${fileSyncError}); downloaded "${currentOpportunity.name}" as a separate file instead.`
+        : `Saved "${currentOpportunity.name}": JSON and CSV downloaded. Ready for the next interview.`;
     $('#submit-feedback').appendChild(el('span', { class: `notice ${noticeIsError ? 'error' : 'success'}` }, noticeText));
 
     // Move on to the next opportunity; keep facilitator details for the next interview.
@@ -2094,7 +2094,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       const g = svgEl('g', {});
       const circle = svgEl('circle', { cx: p.x, cy: p.y, r: p.r, fill: 'var(--series)', 'fill-opacity': 0.72, stroke: 'var(--surface)', 'stroke-width': 2 });
       const title = svgEl('title', {});
-      title.textContent = `${p.opportunityName} — Impact ${fmt(p.impactScore)}, Feasibility ${fmt(p.feasibilityScore)}, Overall ${fmt(p.overallScore)}, ${p.count} response(s)`;
+      title.textContent = `${p.opportunityName}: Impact ${fmt(p.impactScore)}, Feasibility ${fmt(p.feasibilityScore)}, Overall ${fmt(p.overallScore)}, ${p.count} response(s)`;
       circle.appendChild(title);
       g.appendChild(circle);
       svg.appendChild(g);
