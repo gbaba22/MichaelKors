@@ -1,0 +1,710 @@
+{
+  "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
+  "generatedAt": "2026-09-15T01:50:22Z",
+  "generatedBy": "standalone-assessment/scripts/build_config.py",
+  "scale": [
+    0,
+    5,
+    20,
+    50,
+    100
+  ],
+  "overall": {
+    "impactWeight": 0.6,
+    "feasibilityWeight": 0.4
+  },
+  "factors": [
+    {
+      "key": "financial_impact",
+      "name": "Financial Impact",
+      "subtitle": "revenue/margin growth, loss prevention",
+      "question": "Does it make/save money or prevent losses?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.5,
+      "column": "E",
+      "levels": [
+        {
+          "score": 0,
+          "label": "Not measurable"
+        },
+        {
+          "score": 5,
+          "label": "<$100K annually"
+        },
+        {
+          "score": 20,
+          "label": "$100\u2013500K annually"
+        },
+        {
+          "score": 50,
+          "label": "$500K\u2013$2M annually"
+        },
+        {
+          "score": 100,
+          "label": "> $2M annually"
+        }
+      ]
+    },
+    {
+      "key": "process_efficiency",
+      "name": "Process Efficiency (Reduce process time, reduce error rate)",
+      "subtitle": "",
+      "question": "Does it help reduce the process time with lower errors?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.1,
+      "column": "F",
+      "levels": [
+        {
+          "score": 0,
+          "label": "No change in process time or errors"
+        },
+        {
+          "score": 5,
+          "label": "<5% process time or errors reduced"
+        },
+        {
+          "score": 20,
+          "label": "5\u201315% process time or error reduced"
+        },
+        {
+          "score": 50,
+          "label": "15\u201350% process time or errors reduced"
+        },
+        {
+          "score": 100,
+          "label": ">50% cut, or process eliminated / straight-through"
+        }
+      ]
+    },
+    {
+      "key": "customer_experience",
+      "name": "Customer Experience",
+      "subtitle": "CLV or NPS growth",
+      "question": "Does it help delight customers?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.2,
+      "column": "G",
+      "levels": [
+        {
+          "score": 0,
+          "label": "No customer-facing change"
+        },
+        {
+          "score": 5,
+          "label": "No NPS or CLV movement\n(Improves a non-core journey)"
+        },
+        {
+          "score": 20,
+          "label": "<1 NPS or <1% CLV movement\n(Improves a non-core journey)"
+        },
+        {
+          "score": 50,
+          "label": "+1\u20135 NPS or +1\u20132% CLV (Improve in core journey)"
+        },
+        {
+          "score": 100,
+          "label": "+5\u201310 NPS or +2\u20135% CLV (Potential to radically improve CX Experience)"
+        }
+      ]
+    },
+    {
+      "key": "strategic_priority",
+      "name": "Strategic Priority",
+      "subtitle": "",
+      "question": "Does this initiative have a strategic priority?",
+      "category": "impact",
+      "inverted": false,
+      "weight": 0.2,
+      "column": "H",
+      "levels": [
+        {
+          "score": 0,
+          "label": "Serves no FY strategic priority"
+        },
+        {
+          "score": 5,
+          "label": "Indirectly supports a future FY strategic priority"
+        },
+        {
+          "score": 20,
+          "label": "Indirectly supports a FY strategic priority"
+        },
+        {
+          "score": 50,
+          "label": "Directly serves a FY strategic priority"
+        },
+        {
+          "score": 100,
+          "label": "Required as part of the FY enterprise strategy"
+        }
+      ]
+    },
+    {
+      "key": "data_readiness",
+      "name": "Data Readiness",
+      "subtitle": "",
+      "question": "How available and structured is the data required for this initiative?",
+      "category": "feasibility",
+      "inverted": false,
+      "weight": 0.4,
+      "column": "I",
+      "levels": [
+        {
+          "score": 0,
+          "label": "Data doesn't exist and needs to be captured"
+        },
+        {
+          "score": 5,
+          "label": "Partial data, poorly structured"
+        },
+        {
+          "score": 20,
+          "label": "Partial and reasonably structured data with material gaps"
+        },
+        {
+          "score": 50,
+          "label": "Complete data available and structured"
+        },
+        {
+          "score": 100,
+          "label": "Complete data available which is structured, production-grade, real-time, and governed"
+        }
+      ]
+    },
+    {
+      "key": "process_readiness",
+      "name": "Process Readiness",
+      "subtitle": "",
+      "question": "How defined is the process currently?",
+      "category": "feasibility",
+      "inverted": false,
+      "weight": 0.1,
+      "column": "J",
+      "levels": [
+        {
+          "score": 0,
+          "label": "No defined process, adhoc work with no owner"
+        },
+        {
+          "score": 5,
+          "label": "Informal and person-dependent. No documentation or named owner"
+        },
+        {
+          "score": 20,
+          "label": "Partially defined. An owner is identifiable and informal documentation."
+        },
+        {
+          "score": 50,
+          "label": "Documented and followed consistently across the function with named owner and measured periodically"
+        },
+        {
+          "score": 100,
+          "label": "Standardised and instrumented. Measured continuously. Named owner carries this outcome in their objectives"
+        }
+      ]
+    },
+    {
+      "key": "implementation_complexity",
+      "name": "Implementation Complexity",
+      "subtitle": "Systems / Teams involved",
+      "question": "What kind of system or team complexity to be handled considering the system complexity?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.1,
+      "column": "K",
+      "levels": [
+        {
+          "score": 0,
+          "label": "No system integrations, only configurations in existing system"
+        },
+        {
+          "score": 5,
+          "label": "Single integration with no dependencies on other teams"
+        },
+        {
+          "score": 20,
+          "label": "Single Integration with multiple dependencies on other teams"
+        },
+        {
+          "score": 50,
+          "label": "Multiple Integrations with multiple dependencies on other teams"
+        },
+        {
+          "score": 100,
+          "label": "Multi system, multi team, multi year transformational implementation"
+        }
+      ]
+    },
+    {
+      "key": "risk_profile",
+      "name": "Risk Profile",
+      "subtitle": "",
+      "question": "What is the risk exposure? Are we exposing any PII data, would errors lead to revenue loss/efficiency loss etc.?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.2,
+      "column": "L",
+      "levels": [
+        {
+          "score": 0,
+          "label": "Back office with no customer or employee decisioning. Fully reversible"
+        },
+        {
+          "score": 5,
+          "label": "Internal decision support with human in the loop. No special review required."
+        },
+        {
+          "score": 20,
+          "label": "Internal but affects employee outcomes. Needs standard reviews mechanism."
+        },
+        {
+          "score": 50,
+          "label": "Automated business output reaches customers after legal, brand or internal sign off"
+        },
+        {
+          "score": 100,
+          "label": "Irreversible system actions with potential to disrupt customer experience or company operations or Legal issues"
+        }
+      ]
+    },
+    {
+      "key": "capex_cost",
+      "name": "CapEx Cost",
+      "subtitle": "",
+      "question": "What is the CapEx required?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.1,
+      "column": "M",
+      "levels": [
+        {
+          "score": 0,
+          "label": "None, Absorbed in existing licenses"
+        },
+        {
+          "score": 5,
+          "label": "<$100k"
+        },
+        {
+          "score": 20,
+          "label": "$100\u2013300K"
+        },
+        {
+          "score": 50,
+          "label": "$300K\u2013$500K"
+        },
+        {
+          "score": 100,
+          "label": "> $500K"
+        }
+      ]
+    },
+    {
+      "key": "opex_cost",
+      "name": "Annual OpEx Cost",
+      "subtitle": "",
+      "question": "What is the annual OpEx?",
+      "category": "feasibility",
+      "inverted": true,
+      "weight": 0.1,
+      "column": "N",
+      "levels": [
+        {
+          "score": 0,
+          "label": "Negligible. Absorbed in existing run costs"
+        },
+        {
+          "score": 5,
+          "label": "<$20K annually"
+        },
+        {
+          "score": 20,
+          "label": "$20-50K annually"
+        },
+        {
+          "score": 50,
+          "label": "$50-300k annually"
+        },
+        {
+          "score": 100,
+          "label": ">300k Annually"
+        }
+      ]
+    }
+  ],
+  "opportunities": [
+    {
+      "id": 1,
+      "businessArea": "Supply Chain",
+      "name": "Demand Forecasting",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Supply Chain",
+        "Planning"
+      ]
+    },
+    {
+      "id": 2,
+      "businessArea": "Supply Chain",
+      "name": "Inventory Optimization",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Supply Chain",
+        "Merchandising"
+      ]
+    },
+    {
+      "id": 3,
+      "businessArea": "Supply Chain",
+      "name": "Automated Replenishment Recommendations",
+      "businessGoal": "Improve Operational Efficiency",
+      "relevantTeams": [
+        "Supply Chain"
+      ]
+    },
+    {
+      "id": 4,
+      "businessArea": "Supply Chain",
+      "name": "Stock Transfer Optimization",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Supply Chain",
+        "Logistics"
+      ]
+    },
+    {
+      "id": 5,
+      "businessArea": "Supply Chain",
+      "name": "Supplier Risk Monitoring",
+      "businessGoal": "Reduce Risk",
+      "relevantTeams": [
+        "Procurement"
+      ]
+    },
+    {
+      "id": 6,
+      "businessArea": "Supply Chain",
+      "name": "Distribution Center Labor Optimization",
+      "businessGoal": "Improve Operational Efficiency",
+      "relevantTeams": [
+        "Distribution Operations"
+      ]
+    },
+    {
+      "id": 7,
+      "businessArea": "Store & Retail Operations",
+      "name": "Workforce Scheduling Optimization",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "id": 8,
+      "businessArea": "Store & Retail Operations",
+      "name": "Store Manager Copilot",
+      "businessGoal": "Improve Employee Productivity",
+      "relevantTeams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "id": 9,
+      "businessArea": "Store & Retail Operations",
+      "name": "Task Prioritization Assistant",
+      "businessGoal": "Improve Operational Efficiency",
+      "relevantTeams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "id": 10,
+      "businessArea": "Store & Retail Operations",
+      "name": "Loss Prevention Anomaly Detection",
+      "businessGoal": "Reduce Risk",
+      "relevantTeams": [
+        "Asset Protection"
+      ]
+    },
+    {
+      "id": 11,
+      "businessArea": "Store & Retail Operations",
+      "name": "In-Store Associate Copilot",
+      "businessGoal": "Improve Customer Experience",
+      "relevantTeams": [
+        "Store Operations"
+      ]
+    },
+    {
+      "id": 12,
+      "businessArea": "Store & Retail Operations",
+      "name": "Energy Consumption Optimization",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Facilities"
+      ]
+    },
+    {
+      "id": 13,
+      "businessArea": "Marketing & Branding",
+      "name": "Customer Segmentation AI",
+      "businessGoal": "Increase Revenue",
+      "relevantTeams": [
+        "Marketing"
+      ]
+    },
+    {
+      "id": 14,
+      "businessArea": "Marketing & Branding",
+      "name": "Marketing Asset Generation",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Creative Services"
+      ]
+    },
+    {
+      "id": 15,
+      "businessArea": "Marketing & Branding",
+      "name": "Campaign Performance Optimization",
+      "businessGoal": "Improve Operational Efficiency",
+      "relevantTeams": [
+        "Marketing"
+      ]
+    },
+    {
+      "id": 16,
+      "businessArea": "Marketing & Branding",
+      "name": "Trend Detection & Social Listening",
+      "businessGoal": "Win Younger Audience",
+      "relevantTeams": [
+        "Marketing"
+      ]
+    },
+    {
+      "id": 17,
+      "businessArea": "Marketing & Branding",
+      "name": "Competitive Intelligence Assistant",
+      "businessGoal": "Protect/Grow Market Share",
+      "relevantTeams": [
+        "Marketing"
+      ]
+    },
+    {
+      "id": 18,
+      "businessArea": "Marketing & Branding",
+      "name": "Personalized Offer Generation",
+      "businessGoal": "Increase Loyalty",
+      "relevantTeams": [
+        "CRM",
+        "Marketing"
+      ]
+    },
+    {
+      "id": 19,
+      "businessArea": "eCommerce",
+      "name": "Product Recommendation Engine",
+      "businessGoal": "Increase Revenue",
+      "relevantTeams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "id": 20,
+      "businessArea": "eCommerce",
+      "name": "Dynamic Product Bundling",
+      "businessGoal": "Increase Revenue",
+      "relevantTeams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "id": 21,
+      "businessArea": "eCommerce",
+      "name": "Conversational Shopping Assistant",
+      "businessGoal": "Improve Customer Experience",
+      "relevantTeams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "id": 22,
+      "businessArea": "eCommerce",
+      "name": "Personalized Search Results",
+      "businessGoal": "Increase Revenue",
+      "relevantTeams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "id": 23,
+      "businessArea": "eCommerce",
+      "name": "Return Prediction & Prevention",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Digital Commerce"
+      ]
+    },
+    {
+      "id": 24,
+      "businessArea": "eCommerce",
+      "name": "AI Style Advisor",
+      "businessGoal": "Win Younger Audience",
+      "relevantTeams": [
+        "Digital Commerce",
+        "Marketing"
+      ]
+    },
+    {
+      "id": 25,
+      "businessArea": "Finance",
+      "name": "BLP",
+      "businessGoal": "Reduce cost & errors involved in processing invoice",
+      "relevantTeams": [
+        "Finance"
+      ]
+    },
+    {
+      "id": 26,
+      "businessArea": "Finance",
+      "name": "Invoice Processing Automation",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Finance"
+      ]
+    },
+    {
+      "id": 27,
+      "businessArea": "Finance",
+      "name": "Financial Close Copilot",
+      "businessGoal": "Improve Operational Efficiency",
+      "relevantTeams": [
+        "Finance"
+      ]
+    },
+    {
+      "id": 28,
+      "businessArea": "Finance",
+      "name": "Fraud & Anomaly Detection",
+      "businessGoal": "Reduce Risk",
+      "relevantTeams": [
+        "Finance"
+      ]
+    },
+    {
+      "id": 29,
+      "businessArea": "Finance",
+      "name": "Cash Flow Forecasting",
+      "businessGoal": "Improve Planning",
+      "relevantTeams": [
+        "FP&A"
+      ]
+    },
+    {
+      "id": 30,
+      "businessArea": "Finance",
+      "name": "Vendor Spend Optimization",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Procurement",
+        "Finance"
+      ]
+    },
+    {
+      "id": 31,
+      "businessArea": "Finance",
+      "name": "Finance Analyst Copilot",
+      "businessGoal": "Improve Employee Productivity",
+      "relevantTeams": [
+        "Finance"
+      ]
+    },
+    {
+      "id": 32,
+      "businessArea": "Customer Care",
+      "name": "Customer Service Chatbot",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "id": 33,
+      "businessArea": "Customer Care",
+      "name": "Agent Assist Copilot",
+      "businessGoal": "Improve Customer Experience",
+      "relevantTeams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "id": 34,
+      "businessArea": "Customer Care",
+      "name": "Case Summarization",
+      "businessGoal": "Improve Operational Efficiency",
+      "relevantTeams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "id": 35,
+      "businessArea": "Customer Care",
+      "name": "Proactive Customer Issue Resolution",
+      "businessGoal": "Increase Loyalty",
+      "relevantTeams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "id": 36,
+      "businessArea": "Customer Care",
+      "name": "Contact Center Demand Forecasting",
+      "businessGoal": "Reduce Cost",
+      "relevantTeams": [
+        "Customer Care"
+      ]
+    },
+    {
+      "id": 37,
+      "businessArea": "Customer Care",
+      "name": "Voice-of-Customer Insights Engine",
+      "businessGoal": "Improve Customer Experience",
+      "relevantTeams": [
+        "Customer Care"
+      ]
+    }
+  ],
+  "teams": [
+    "Asset Protection",
+    "CRM",
+    "Creative Services",
+    "Customer Care",
+    "Digital Commerce",
+    "Distribution Operations",
+    "FP&A",
+    "Facilities",
+    "Finance",
+    "Logistics",
+    "Marketing",
+    "Merchandising",
+    "Planning",
+    "Procurement",
+    "Store Operations",
+    "Supply Chain"
+  ],
+  "businessAreas": [
+    "Customer Care",
+    "Finance",
+    "Marketing & Branding",
+    "Store & Retail Operations",
+    "Supply Chain",
+    "eCommerce"
+  ],
+  "checks": {
+    "impactWeightSum": 1.0,
+    "feasibilityWeightSum": 1.0,
+    "opportunityCount": 37
+  }
+}

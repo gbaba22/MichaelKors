@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>AI Opportunity Assessment</title>
+<style>
+/* ------------------------------------------------------------- tokens --
+ * Light is the base; dark redefines only the values. No external fonts,
+ * no external scripts, no network calls - this file is meant to be opened
+ * directly (file://), emailed around, or hosted as a single static asset.
+ */
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-sunken: #f2f2ef;
+  --surface-hover: #f0efec;
+  --ink: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --line: #e1e0d9;
+  --line-strong: #c3c2b7;
+  --accent: #1c5cab;
+  --accent-hover: #184f95;
+  --accent-soft: #e8f0fb;
+  --accent-ink: #ffffff;
+  --series: #2a78d6;
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgba(11, 11, 11, 0.05), 0 8px 24px rgba(11, 11, 11, 0.05);
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-sunken: #131312;
+    --surface-hover: #242423;
+    --ink: #ffffff;
+    --ink-secondary: #c3c2b7;
+    --ink-muted: #898781;
+    --line: #2c2c2a;
+    --line-strong: #383835;
+    --accent: #3987e5;
+    --accent-hover: #5598e7;
+    --accent-soft: #172740;
+    --accent-ink: #0b0b0b;
+    --series: #3987e5;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.1rem; }
+h3 { font-size: 0.92rem; }
+p { margin: 0; }
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  display: flex; align-items: center; gap: 16px; padding: 14px 24px;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 20; flex-wrap: wrap;
+}
+.topbar .brand { font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.topbar .brand small {
+  color: var(--ink-muted); font-weight: 400; font-size: 0.78rem; letter-spacing: 0.02em; text-transform: uppercase;
+  max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom;
+}
+@media (max-width: 480px) {
+  .topbar .brand small { max-width: 110px; }
+}
+.spacer { flex: 1; }
+.container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 20px 72px; }
+.stack { display: flex; flex-direction: column; gap: 18px; }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+.card-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.muted { color: var(--ink-muted); }
+.secondary-text { color: var(--ink-secondary); }
+.small { font-size: 0.85rem; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-muted); font-weight: 600; }
+
+/* tabs */
+.tabs { display: flex; gap: 2px; }
+.tabs button {
+  border: none; background: transparent; color: var(--ink-secondary);
+  padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 500; font: inherit; cursor: pointer;
+}
+.tabs button[aria-current='true'] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+/* inputs */
+label.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; font-weight: 500; color: var(--ink-secondary); }
+input[type='text'], input[type='email'], input[type='date'], select, textarea {
+  font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 9px 11px; width: 100%;
+}
+input:focus-visible, select:focus-visible, button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+button { font: inherit; font-size: 0.9rem; font-weight: 500; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); padding: 9px 16px; cursor: pointer; }
+button:hover:not(:disabled) { background: var(--surface-hover); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+button.ghost { border-color: transparent; background: transparent; color: var(--ink-secondary); }
+button.small { padding: 5px 10px; font-size: 0.8rem; }
+.form-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* chips */
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: var(--surface-sunken); border: 1px solid var(--line); font-size: 0.76rem; color: var(--ink-secondary); white-space: nowrap; }
+.chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* notices */
+.notice { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.88rem; border: 1px solid var(--line); background: var(--surface-sunken); color: var(--ink-secondary); }
+.notice.error { border-color: color-mix(in srgb, var(--critical) 35%, transparent); background: color-mix(in srgb, var(--critical) 8%, transparent); color: var(--critical); }
+.notice.success { border-color: color-mix(in srgb, var(--good) 35%, transparent); background: color-mix(in srgb, var(--good) 8%, transparent); color: var(--good); }
+.empty { padding: 32px 20px; text-align: center; color: var(--ink-muted); }
+
+/* stat tiles */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { background: var(--surface-sunken); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; }
+.stat .value { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .label { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted); font-weight: 600; margin-top: 2px; }
+
+/* factor scoring */
+.factor-block { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.factor-block:last-child { border-bottom: none; }
+.factor-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.factor-head .name { font-weight: 600; }
+.factor-weight { font-size: 0.74rem; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; font-weight: 600; }
+.factor-subtitle, .factor-question { font-size: 0.82rem; color: var(--ink-muted); margin-top: 2px; }
+.scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.scale-option {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
+  padding: 9px 10px; min-height: 74px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface); cursor: pointer;
+}
+.scale-option:hover:not(:disabled) { border-color: var(--line-strong); background: var(--surface-hover); }
+.scale-option .score { font-weight: 600; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.scale-option .desc { font-size: 0.71rem; line-height: 1.3; color: var(--ink-muted); white-space: normal; }
+.scale-option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.scale-option[aria-pressed='true'] .score, .scale-option[aria-pressed='true'] .desc { color: var(--accent); }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted); }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--ink); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr:hover { background: var(--surface-hover); }
+
+/* dropzone */
+.dropzone {
+  border: 2px dashed var(--line-strong); border-radius: var(--radius); padding: 28px 20px; text-align: center;
+  color: var(--ink-muted); cursor: pointer; background: var(--surface-sunken);
+}
+.dropzone.dragover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.dropzone input[type='file'] { display: none; }
+
+/* chart */
+.chart-surface { width: 100%; height: auto; display: block; }
+.axis-tick { fill: var(--ink-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.axis-title { fill: var(--ink-secondary); font-size: 12px; font-weight: 500; }
+.quadrant-label { fill: var(--ink-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.point-label { fill: var(--ink-secondary); font-size: 11.5px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+
+details.data-source { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+details.data-source > summary { padding: 12px 16px; cursor: pointer; font-size: 0.85rem; color: var(--ink-secondary); list-style: none; }
+details.data-source > summary::-webkit-details-marker { display: none; }
+details.data-source > summary::before { content: '▸ '; color: var(--ink-muted); }
+details.data-source[open] > summary::before { content: '▾ '; }
+details.data-source .data-source-body { padding: 0 16px 16px; }
+
+@media (max-width: 780px) {
+  .scale { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .scale-option { min-height: 0; flex-direction: row; align-items: baseline; gap: 8px; }
+  .container { padding: 18px 14px 64px; }
+  .topbar { padding: 10px 14px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">AI Opportunity Assessment <small id="framework-tag">standalone</small></div>
+    <nav class="tabs" aria-label="Sections">
+      <button type="button" id="tab-score" aria-current="true">Score an Opportunity</button>
+      <button type="button" id="tab-combine" aria-current="false">Combine Results</button>
+    </nav>
+    <div class="spacer"></div>
+  </header>
+
+  <div class="container">
+    <details class="data-source" id="data-source-details">
+      <summary id="data-source-summary">Data source</summary>
+      <div class="data-source-body stack" style="gap: 10px; padding-top: 4px;">
+        <p class="small secondary-text" id="data-source-info"></p>
+        <div class="row">
+          <label class="field" style="flex: 1; min-width: 220px;">
+            Load a different data file (config.json)
+            <input type="file" id="config-file-input" accept="application/json" />
+          </label>
+          <button type="button" class="small" id="reset-config-btn">Use bundled framework</button>
+        </div>
+        <p class="small muted">
+          Regenerate this file from an updated workbook with <code>python3 scripts/build_config.py</code>,
+          then either re-open this page or load the resulting <code>data/config.json</code> above.
+        </p>
+      </div>
+    </details>
+
+    <div id="view-score"></div>
+    <div id="view-combine" hidden></div>
+  </div>
+</div>
+
+<script id="config-data" type="application/json">__CONFIG_JSON__</script>
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================ config == */
+  const DEFAULT_CONFIG = JSON.parse(document.getElementById('config-data').textContent);
+  let CONFIG = DEFAULT_CONFIG;
+
+  const SESSION_KEY = 'mk-ai-assessment-session-v1';
+
+  /* ============================================================ helpers = */
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+  const el = (tag, attrs, children) => {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') node.className = v;
+      else if (k === 'html') node.innerHTML = v;
+      else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) node.setAttribute(k, v);
+    }
+    for (const child of [].concat(children || [])) {
+      if (child == null) continue;
+      node.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+    }
+    return node;
+  };
+  const fmt = (n, digits) => (n == null ? '—' : n.toFixed(digits == null ? 1 : digits));
+  const round = (n, digits) => {
+    if (n == null) return null;
+    const f = Math.pow(10, digits == null ? 1 : digits);
+    return Math.round(n * f) / f;
+  };
+  const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const timestampSlug = () => {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  };
+  const median = (values) => {
+    const v = values.filter((x) => x != null).sort((a, b) => a - b);
+    if (v.length === 0) return null;
+    const mid = Math.floor(v.length / 2);
+    return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
+  };
+  const mean = (values) => {
+    const v = values.filter((x) => x != null);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  };
+
+  /* ================================================== scoring model ===== *
+   * Mirrors the workbook exactly: for each category, a weighted mean of
+   * (inverted ? 100-score : score), normalised by the weights actually
+   * answered so a partial answer set still lands on 0-100. Overall is the
+   * plain weighted sum of Impact and Feasibility, as currently defined on
+   * the Weights sheet (Impact*0.6 + Feasibility*0.4) - not a geometric
+   * mean. If that changes on the sheet, update `overallScore` below and
+   * re-run build_config.py; nothing else needs to change.
+   */
+  function effectiveValue(factor, raw) {
+    return factor.inverted ? 100 - raw : raw;
+  }
+  function categoryScore(factors, answers, category) {
+    let weighted = 0;
+    let weightSum = 0;
+    for (const f of factors) {
+      if (f.category !== category) continue;
+      const raw = answers[f.key];
+      if (raw == null || Number.isNaN(raw)) continue;
+      weighted += effectiveValue(f, raw) * f.weight;
+      weightSum += f.weight;
+    }
+    if (weightSum <= 0) return null;
+    return weighted / weightSum;
+  }
+  function overallScore(impact, feasibility, overall) {
+    if (impact == null || feasibility == null) return null;
+    const wsum = overall.impactWeight + overall.feasibilityWeight;
+    if (wsum <= 0) return null;
+    return (impact * overall.impactWeight + feasibility * overall.feasibilityWeight) / wsum;
+  }
+
+  /* ==================================================== CSV / download == */
+  function csvCell(v) {
+    const s = v == null ? '' : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function buildCsv(records) {
+    const header = [
+      'Submitted At', 'Facilitator Name', 'Facilitator Email',
+      'Business Owner Name', 'Business Owner Team', 'Interview Date',
+      'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams',
+      ...CONFIG.factors.map((f) => f.name),
+      'Impact Score', 'Feasibility Score', 'AI Opportunity Score',
+    ];
+    const rows = records.map((r) => [
+      r.submittedAt, r.facilitatorName, r.facilitatorEmail || '',
+      r.businessOwnerName, r.businessOwnerTeam, r.interviewDate,
+      r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '),
+      ...CONFIG.factors.map((f) => (r.scores[f.key] != null ? r.scores[f.key] : '')),
+      r.impactScore, r.feasibilityScore, r.overallScore,
+    ]);
+    return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n');
+  }
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = el('a', { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+  function downloadJson(obj, filename) {
+    downloadBlob(JSON.stringify(obj, null, 2), filename, 'application/json');
+  }
+  function downloadCsv(csvText, filename) {
+    downloadBlob('﻿' + csvText, filename, 'text/csv;charset=utf-8;');
+  }
+
+  /* ======================================================== session log */
+  function loadSession() {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveSession(records) {
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(records));
+    } catch (e) {
+      /* private browsing / storage disabled - session log just won't persist across reloads */
+    }
+  }
+  let sessionRecords = loadSession();
+
+  /* ============================================================ tabs ==== */
+  const tabScore = $('#tab-score');
+  const tabCombine = $('#tab-combine');
+  const viewScore = $('#view-score');
+  const viewCombine = $('#view-combine');
+  tabScore.addEventListener('click', () => switchTab('score'));
+  tabCombine.addEventListener('click', () => switchTab('combine'));
+  function switchTab(which) {
+    const onScore = which === 'score';
+    viewScore.hidden = !onScore;
+    viewCombine.hidden = onScore;
+    tabScore.setAttribute('aria-current', String(onScore));
+    tabCombine.setAttribute('aria-current', String(!onScore));
+  }
+
+  /* ==================================================== data source UI == */
+  function renderDataSourceInfo() {
+    const info = $('#data-source-info');
+    const tag = $('#framework-tag');
+    const genAt = CONFIG.generatedAt ? new Date(CONFIG.generatedAt).toLocaleString() : 'unknown time';
+    info.textContent =
+      `Using framework generated from "${CONFIG.generatedFrom}" (${genAt}). ` +
+      `${CONFIG.opportunities.length} AI opportunities, ${CONFIG.factors.length} factors. ` +
+      `Overall = Impact × ${Math.round(CONFIG.overall.impactWeight * 100)}% + Feasibility × ${Math.round(CONFIG.overall.feasibilityWeight * 100)}%.`;
+    tag.textContent = CONFIG.generatedFrom;
+    tag.title = CONFIG.generatedFrom;
+  }
+  $('#config-file-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed.factors) || !Array.isArray(parsed.opportunities) || !parsed.overall) {
+        throw new Error('File is missing factors/opportunities/overall - not a config.json this tool produced.');
+      }
+      CONFIG = parsed;
+      renderDataSourceInfo();
+      renderScoreView();
+      renderCombineView();
+      $('#data-source-details').open = false;
+    } catch (err) {
+      alert('Could not load that file: ' + err.message);
+    } finally {
+      e.target.value = '';
+    }
+  });
+  $('#reset-config-btn').addEventListener('click', () => {
+    CONFIG = DEFAULT_CONFIG;
+    renderDataSourceInfo();
+    renderScoreView();
+    renderCombineView();
+  });
+
+  /* ======================================================== SCORE VIEW == */
+  let currentOpportunity = null;
+  let currentAnswers = {};
+
+  function buildScoreView() {
+    viewScore.innerHTML = '';
+    viewScore.appendChild(
+      el('div', { class: 'stack' }, [
+        buildMetaCard(),
+        buildOpportunityCard(),
+        buildFactorsCard(),
+        buildLiveScorePanel(),
+        buildSubmitRow(),
+        buildSessionCard(),
+      ]),
+    );
+  }
+
+  function buildMetaCard() {
+    const card = el('div', { class: 'card stack' });
+    card.appendChild(el('h2', {}, 'Interview details'));
+    const grid = el('div', { class: 'form-grid' });
+
+    const facilitatorName = el('input', { type: 'text', id: 'f-facilitator-name', required: true, autocomplete: 'name' });
+    const facilitatorEmail = el('input', { type: 'email', id: 'f-facilitator-email', autocomplete: 'email' });
+    const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
+    const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', required: true, list: 'team-options' });
+    const teamList = el('datalist', { id: 'team-options' }, CONFIG.teams.map((t) => el('option', { value: t })));
+    const date = el('input', { type: 'date', id: 'f-date' });
+    date.value = new Date().toISOString().slice(0, 10);
+
+    grid.appendChild(el('label', { class: 'field' }, ['Facilitator (AI CoE) name', facilitatorName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Facilitator email (optional)', facilitatorEmail]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business owner name', ownerName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business owner team / function', ownerTeam, teamList]));
+    grid.appendChild(el('label', { class: 'field' }, ['Interview date', date]));
+
+    card.appendChild(grid);
+    [facilitatorName, facilitatorEmail, ownerName, ownerTeam, date].forEach((i) =>
+      i.addEventListener('input', updateSubmitEnabled),
+    );
+    return card;
+  }
+
+  function buildOpportunityCard() {
+    const card = el('div', { class: 'card stack' });
+    card.appendChild(el('h2', {}, 'AI Opportunity'));
+
+    const areas = new Map();
+    for (const o of CONFIG.opportunities) {
+      if (!areas.has(o.businessArea)) areas.set(o.businessArea, []);
+      areas.get(o.businessArea).push(o);
+    }
+    const select = el('select', { id: 'f-opportunity' }, [
+      el('option', { value: '' }, 'Choose an opportunity…'),
+      ...Array.from(areas.entries()).map(([area, opps]) =>
+        el(
+          'optgroup',
+          { label: area },
+          opps.map((o) => el('option', { value: String(o.id) }, o.name)),
+        ),
+      ),
+    ]);
+    select.addEventListener('change', () => {
+      const id = Number(select.value);
+      currentOpportunity = CONFIG.opportunities.find((o) => o.id === id) || null;
+      currentAnswers = {};
+      renderOpportunityContext();
+      renderFactorsCard();
+      updateLiveScores();
+      updateSubmitEnabled();
+    });
+
+    card.appendChild(el('label', { class: 'field' }, ['Select an AI opportunity to score', select]));
+    card.appendChild(el('div', { id: 'opportunity-context' }));
+    return card;
+  }
+
+  function renderOpportunityContext() {
+    const box = $('#opportunity-context');
+    box.innerHTML = '';
+    if (!currentOpportunity) return;
+    box.appendChild(
+      el('div', { class: 'row', style: 'margin-top: 4px;' }, [
+        el('span', { class: 'chip' }, currentOpportunity.businessArea),
+        currentOpportunity.businessGoal ? el('span', { class: 'chip' }, currentOpportunity.businessGoal) : null,
+        ...currentOpportunity.relevantTeams.map((t) => el('span', { class: 'chip' }, t)),
+      ]),
+    );
+  }
+
+  function buildFactorsCard() {
+    const card = el('div', { class: 'card', id: 'factors-card' });
+    return card;
+  }
+  function renderFactorsCard() {
+    const card = $('#factors-card');
+    card.innerHTML = '';
+    if (!currentOpportunity) {
+      card.appendChild(el('p', { class: 'empty' }, 'Choose an AI opportunity above to begin scoring its factors.'));
+      return;
+    }
+    card.appendChild(el('h2', {}, 'Impact factors'));
+    for (const f of CONFIG.factors.filter((f) => f.category === 'impact')) card.appendChild(renderFactorBlock(f));
+    card.appendChild(el('h2', { style: 'margin-top: 18px;' }, 'Feasibility factors'));
+    for (const f of CONFIG.factors.filter((f) => f.category === 'feasibility')) card.appendChild(renderFactorBlock(f));
+  }
+  function renderFactorBlock(factor) {
+    const block = el('div', { class: 'factor-block', 'data-key': factor.key });
+    block.appendChild(
+      el('div', { class: 'factor-head' }, [
+        el('span', { class: 'name' }, factor.name),
+        el('span', { class: 'factor-weight' }, `${Math.round(factor.weight * 100)}%`),
+        factor.inverted ? el('span', { class: 'chip', title: 'A high score here counts against feasibility' }, 'higher = worse') : null,
+      ]),
+    );
+    if (factor.subtitle) block.appendChild(el('div', { class: 'factor-subtitle' }, factor.subtitle));
+    if (factor.question) block.appendChild(el('div', { class: 'factor-question' }, factor.question));
+
+    const scale = el('div', { class: 'scale', role: 'radiogroup', 'aria-label': factor.name + ' score' });
+    for (const level of factor.levels) {
+      const btn = el(
+        'button',
+        {
+          type: 'button',
+          class: 'scale-option',
+          'aria-pressed': 'false',
+          onclick: () => {
+            currentAnswers[factor.key] = level.score;
+            $$('.scale-option', scale).forEach((b) => b.setAttribute('aria-pressed', 'false'));
+            btn.setAttribute('aria-pressed', 'true');
+            updateLiveScores();
+            updateSubmitEnabled();
+          },
+        },
+        [el('span', { class: 'score' }, String(level.score)), el('span', { class: 'desc' }, level.label)],
+      );
+      scale.appendChild(btn);
+    }
+    block.appendChild(scale);
+    return block;
+  }
+
+  function buildLiveScorePanel() {
+    const card = el('div', { class: 'card', id: 'live-score-card' });
+    return card;
+  }
+  function updateLiveScores() {
+    const card = $('#live-score-card');
+    if (!card) return;
+    const impactFactors = CONFIG.factors.filter((f) => f.category === 'impact');
+    const feasFactors = CONFIG.factors.filter((f) => f.category === 'feasibility');
+    const impact = categoryScore(CONFIG.factors, currentAnswers, 'impact');
+    const feasibility = categoryScore(CONFIG.factors, currentAnswers, 'feasibility');
+    const overall = overallScore(impact, feasibility, CONFIG.overall);
+    const answered = Object.keys(currentAnswers).length;
+
+    card.innerHTML = '';
+    card.appendChild(
+      el('div', { class: 'card-header' }, [
+        el('h2', {}, 'Live score'),
+        el('span', { class: 'chip' }, `${answered} of ${CONFIG.factors.length} factors answered`),
+      ]),
+    );
+    card.appendChild(
+      el('div', { class: 'stat-row' }, [
+        statTile('Impact', impact, `${impactFactors.filter((f) => currentAnswers[f.key] != null).length}/${impactFactors.length} answered`),
+        statTile('Feasibility', feasibility, `${feasFactors.filter((f) => currentAnswers[f.key] != null).length}/${feasFactors.length} answered`),
+        statTile('AI Opportunity Score', overall, 'Impact × ' + Math.round(CONFIG.overall.impactWeight * 100) + '% + Feasibility × ' + Math.round(CONFIG.overall.feasibilityWeight * 100) + '%'),
+      ]),
+    );
+  }
+  function statTile(label, value, sub) {
+    return el('div', { class: 'stat' }, [
+      el('div', { class: 'value' }, fmt(value)),
+      el('div', { class: 'label' }, label),
+      el('div', { class: 'small muted', style: 'margin-top: 4px;' }, sub),
+    ]);
+  }
+
+  function buildSubmitRow() {
+    const row = el('div', { class: 'row' });
+    const submitBtn = el(
+      'button',
+      { class: 'primary', id: 'submit-btn', disabled: true, onclick: handleSubmit },
+      'Save & download this response',
+    );
+    const resetBtn = el('button', { class: 'ghost', onclick: resetOpportunityFields }, 'Clear this opportunity’s answers');
+    row.appendChild(submitBtn);
+    row.appendChild(resetBtn);
+    row.appendChild(el('div', { id: 'submit-feedback', class: 'small' }));
+    return row;
+  }
+
+  function resetOpportunityFields() {
+    currentAnswers = {};
+    renderFactorsCard();
+    updateLiveScores();
+    updateSubmitEnabled();
+  }
+
+  function updateSubmitEnabled() {
+    const btn = $('#submit-btn');
+    if (!btn) return;
+    const facilitatorName = $('#f-facilitator-name').value.trim();
+    const ownerName = $('#f-owner-name').value.trim();
+    const ownerTeam = $('#f-owner-team').value.trim();
+    const answered = Object.keys(currentAnswers).length;
+    const complete =
+      facilitatorName && ownerName && ownerTeam && currentOpportunity && answered === CONFIG.factors.length;
+    btn.disabled = !complete;
+  }
+
+  function handleSubmit() {
+    const impact = round(categoryScore(CONFIG.factors, currentAnswers, 'impact'), 1);
+    const feasibility = round(categoryScore(CONFIG.factors, currentAnswers, 'feasibility'), 1);
+    const overall = round(overallScore(impact, feasibility, CONFIG.overall), 1);
+
+    const record = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      submittedAt: new Date().toISOString(),
+      facilitatorName: $('#f-facilitator-name').value.trim(),
+      facilitatorEmail: $('#f-facilitator-email').value.trim(),
+      businessOwnerName: $('#f-owner-name').value.trim(),
+      businessOwnerTeam: $('#f-owner-team').value.trim(),
+      interviewDate: $('#f-date').value,
+      opportunityId: currentOpportunity.id,
+      opportunityName: currentOpportunity.name,
+      businessArea: currentOpportunity.businessArea,
+      businessGoal: currentOpportunity.businessGoal,
+      relevantTeams: currentOpportunity.relevantTeams,
+      scores: Object.assign({}, currentAnswers),
+      impactScore: impact,
+      feasibilityScore: feasibility,
+      overallScore: overall,
+      frameworkVersion: CONFIG.generatedFrom,
+    };
+
+    const base = `assessment_${slugify(currentOpportunity.name)}_${timestampSlug()}`;
+    downloadJson(record, base + '.json');
+    downloadCsv(buildCsv([record]), base + '.csv');
+
+    sessionRecords = sessionRecords.concat([record]);
+    saveSession(sessionRecords);
+    renderSessionTable();
+
+    $('#submit-feedback').innerHTML = '';
+    $('#submit-feedback').appendChild(
+      el('span', { class: 'notice success' }, `Saved "${currentOpportunity.name}" — JSON and CSV downloaded. Ready for the next interview.`),
+    );
+
+    // Move on to the next opportunity; keep facilitator details for the next interview.
+    currentOpportunity = null;
+    currentAnswers = {};
+    $('#f-opportunity').value = '';
+    $('#f-owner-name').value = '';
+    $('#f-owner-team').value = '';
+    renderOpportunityContext();
+    renderFactorsCard();
+    updateLiveScores();
+    updateSubmitEnabled();
+  }
+
+  function buildSessionCard() {
+    const card = el('div', { class: 'card', id: 'session-card' });
+    return card;
+  }
+  function renderSessionTable() {
+    const card = $('#session-card');
+    if (!card) return;
+    card.innerHTML = '';
+    card.appendChild(
+      el('div', { class: 'card-header' }, [
+        el('h2', {}, 'This browser’s session'),
+        el('span', { class: 'chip' }, `${sessionRecords.length} submitted`),
+        el('div', { class: 'spacer' }),
+        el('button', { class: 'small', onclick: () => downloadCsv(buildCsv(sessionRecords), `session_${timestampSlug()}.csv`), disabled: sessionRecords.length === 0 }, 'Download session as CSV'),
+        el(
+          'button',
+          {
+            class: 'small ghost',
+            disabled: sessionRecords.length === 0,
+            onclick: () => {
+              if (!confirm('Clear all responses saved in this browser? Already-downloaded files are unaffected.')) return;
+              sessionRecords = [];
+              saveSession(sessionRecords);
+              renderSessionTable();
+            },
+          },
+          'Clear session',
+        ),
+      ]),
+    );
+    if (sessionRecords.length === 0) {
+      card.appendChild(el('p', { class: 'empty' }, 'Responses you submit in this browser are listed here and can be downloaded together at any time.'));
+      return;
+    }
+    const wrap = el('div', { class: 'table-wrap' });
+    const table = el('table');
+    table.appendChild(
+      el('thead', {}, el('tr', {}, ['AI Opportunity', 'Business Owner', 'Impact', 'Feasibility', 'Overall', 'Submitted'].map((h) => el('th', {}, h)))),
+    );
+    const tbody = el('tbody');
+    for (const r of sessionRecords.slice().reverse()) {
+      tbody.appendChild(
+        el('tr', {}, [
+          el('td', {}, r.opportunityName),
+          el('td', {}, `${r.businessOwnerName} (${r.businessOwnerTeam})`),
+          el('td', { class: 'num' }, fmt(r.impactScore)),
+          el('td', { class: 'num' }, fmt(r.feasibilityScore)),
+          el('td', { class: 'num' }, fmt(r.overallScore)),
+          el('td', {}, new Date(r.submittedAt).toLocaleString()),
+        ]),
+      );
+    }
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    card.appendChild(wrap);
+  }
+
+  function renderScoreView() {
+    buildScoreView();
+    renderOpportunityContext();
+    renderFactorsCard();
+    updateLiveScores();
+    renderSessionTable();
+    updateSubmitEnabled();
+  }
+
+  /* ====================================================== COMBINE VIEW == */
+  let combinedFiles = []; // { name, records: [...] }
+  let includeSession = true;
+
+  function buildCombineView() {
+    viewCombine.innerHTML = '';
+    viewCombine.appendChild(
+      el('div', { class: 'stack' }, [buildLoadCard(), buildCombinedStatCard(), buildCombinedTableCard(), buildSummaryCard(), buildChartCard()]),
+    );
+  }
+
+  function buildLoadCard() {
+    const card = el('div', { class: 'card stack' });
+    card.appendChild(el('h2', {}, 'Load submitted responses'));
+    card.appendChild(el('p', { class: 'small muted' }, 'Load the .json files this tool downloads on submit (not the .csv - that’s for opening directly in Excel, not for re-importing here).'));
+
+    const fileInput = el('input', { type: 'file', accept: 'application/json', multiple: true, id: 'combine-file-input' });
+    const zone = el(
+      'div',
+      { class: 'dropzone', onclick: () => fileInput.click() },
+      ['Drop exported .json files here, or click to browse', fileInput],
+    );
+    ['dragover', 'dragenter'].forEach((evt) =>
+      zone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        zone.classList.add('dragover');
+      }),
+    );
+    ['dragleave', 'dragend'].forEach((evt) => zone.addEventListener(evt, () => zone.classList.remove('dragover')));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    card.appendChild(zone);
+
+    const sessionToggle = el('label', { class: 'row small', style: 'cursor: pointer;' }, [
+      el('input', {
+        type: 'checkbox',
+        checked: includeSession ? 'checked' : false,
+        onchange: (e) => {
+          includeSession = e.target.checked;
+          renderCombineDerived();
+        },
+      }),
+      `Also include the ${sessionRecords.length} response(s) submitted in this browser`,
+    ]);
+    card.appendChild(sessionToggle);
+    card.appendChild(el('div', { id: 'combine-load-errors' }));
+    return card;
+  }
+
+  async function handleFiles(fileList) {
+    const errors = [];
+    for (const file of Array.from(fileList)) {
+      if (!/\.json$/i.test(file.name)) {
+        errors.push(`${file.name}: skipped (only .json files can be loaded here)`);
+        continue;
+      }
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const records = Array.isArray(parsed) ? parsed : [parsed];
+        const valid = records.filter((r) => r && r.opportunityId != null && r.scores);
+        if (valid.length === 0) throw new Error('no recognisable submission records found');
+        combinedFiles.push({ name: file.name, records: valid });
+      } catch (err) {
+        errors.push(`${file.name}: ${err.message}`);
+      }
+    }
+    const errBox = $('#combine-load-errors');
+    errBox.innerHTML = '';
+    if (errors.length) {
+      errBox.appendChild(el('div', { class: 'notice error' }, errors.join(' · ')));
+    }
+    renderCombineDerived();
+  }
+
+  function allCombinedRecords() {
+    const byId = new Map();
+    for (const f of combinedFiles) for (const r of f.records) byId.set(r.id || JSON.stringify(r), r);
+    if (includeSession) for (const r of sessionRecords) byId.set(r.id, r);
+    return Array.from(byId.values());
+  }
+
+  function buildCombinedStatCard() {
+    const card = el('div', { class: 'card', id: 'combine-stat-card' });
+    return card;
+  }
+  function renderCombineStats() {
+    const card = $('#combine-stat-card');
+    if (!card) return;
+    const records = allCombinedRecords();
+    const distinctOpportunities = new Set(records.map((r) => r.opportunityId)).size;
+    const distinctFacilitators = new Set(records.map((r) => r.facilitatorName)).size;
+    card.innerHTML = '';
+    card.appendChild(el('h2', {}, 'Loaded so far'));
+    card.appendChild(
+      el('div', { class: 'stat-row' }, [
+        statPlain(records.length, 'Responses loaded'),
+        statPlain(distinctOpportunities, 'Distinct opportunities'),
+        statPlain(distinctFacilitators, 'Facilitators'),
+        statPlain(combinedFiles.length, 'Files loaded'),
+      ]),
+    );
+  }
+  function statPlain(value, label) {
+    return el('div', { class: 'stat' }, [el('div', { class: 'value' }, String(value)), el('div', { class: 'label' }, label)]);
+  }
+
+  let sortState = { table: 'raw', field: 'overallScore', dir: 'desc' };
+  function buildCombinedTableCard() {
+    const card = el('div', { class: 'card', id: 'combine-table-card' });
+    return card;
+  }
+  function renderCombinedTable() {
+    const card = $('#combine-table-card');
+    if (!card) return;
+    const records = allCombinedRecords();
+    card.innerHTML = '';
+    card.appendChild(
+      el('div', { class: 'card-header' }, [
+        el('h2', {}, 'Every response'),
+        el('span', { class: 'chip' }, `${records.length} rows`),
+        el('div', { class: 'spacer' }),
+        el('button', { class: 'small', disabled: records.length === 0, onclick: () => downloadCsv(buildCsv(sortRecords(records, sortState)), `combined_responses_${timestampSlug()}.csv`) }, 'Export combined CSV'),
+      ]),
+    );
+    if (records.length === 0) {
+      card.appendChild(el('p', { class: 'empty' }, 'Load some .json response files above to see them here.'));
+      return;
+    }
+    const columns = [
+      { key: 'opportunityName', label: 'AI Opportunity' },
+      { key: 'businessArea', label: 'Business Area' },
+      { key: 'businessOwnerName', label: 'Business Owner' },
+      { key: 'facilitatorName', label: 'Facilitator' },
+      { key: 'impactScore', label: 'Impact', num: true },
+      { key: 'feasibilityScore', label: 'Feasibility', num: true },
+      { key: 'overallScore', label: 'Overall', num: true },
+      { key: 'submittedAt', label: 'Submitted' },
+    ];
+    const sorted = sortRecords(records, sortState);
+    const table = el('table');
+    table.appendChild(
+      el(
+        'thead',
+        {},
+        el(
+          'tr',
+          {},
+          columns.map((c) =>
+            el(
+              'th',
+              {
+                class: 'sortable' + (c.num ? ' num' : ''),
+                onclick: () => {
+                  sortState = sortState.field === c.key ? { field: c.key, dir: sortState.dir === 'asc' ? 'desc' : 'asc' } : { field: c.key, dir: c.num ? 'desc' : 'asc' };
+                  renderCombinedTable();
+                },
+              },
+              c.label + (sortState.field === c.key ? (sortState.dir === 'asc' ? ' ↑' : ' ↓') : ''),
+            ),
+          ),
+        ),
+      ),
+    );
+    const tbody = el('tbody');
+    for (const r of sorted) {
+      tbody.appendChild(
+        el('tr', {}, [
+          el('td', {}, r.opportunityName),
+          el('td', { class: 'secondary-text' }, r.businessArea),
+          el('td', {}, `${r.businessOwnerName} (${r.businessOwnerTeam || ''})`),
+          el('td', { class: 'secondary-text' }, r.facilitatorName),
+          el('td', { class: 'num' }, fmt(r.impactScore)),
+          el('td', { class: 'num' }, fmt(r.feasibilityScore)),
+          el('td', { class: 'num', style: 'font-weight: 600;' }, fmt(r.overallScore)),
+          el('td', { class: 'small muted' }, new Date(r.submittedAt).toLocaleDateString()),
+        ]),
+      );
+    }
+    table.appendChild(tbody);
+    const wrap = el('div', { class: 'table-wrap' });
+    wrap.appendChild(table);
+    card.appendChild(wrap);
+  }
+  function sortRecords(records, state) {
+    const dir = state.dir === 'asc' ? 1 : -1;
+    return records.slice().sort((a, b) => {
+      const av = a[state.field];
+      const bv = b[state.field];
+      if (typeof av === 'string' || typeof bv === 'string') return String(av).localeCompare(String(bv)) * dir;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (av - bv) * dir;
+    });
+  }
+
+  function summarise(records) {
+    const byOpp = new Map();
+    for (const r of records) {
+      if (!byOpp.has(r.opportunityId)) {
+        byOpp.set(r.opportunityId, {
+          opportunityId: r.opportunityId,
+          opportunityName: r.opportunityName,
+          businessArea: r.businessArea,
+          items: [],
+        });
+      }
+      byOpp.get(r.opportunityId).items.push(r);
+    }
+    return Array.from(byOpp.values()).map((group) => ({
+      opportunityId: group.opportunityId,
+      opportunityName: group.opportunityName,
+      businessArea: group.businessArea,
+      count: group.items.length,
+      impactScore: round(mean(group.items.map((i) => i.impactScore)), 1),
+      feasibilityScore: round(mean(group.items.map((i) => i.feasibilityScore)), 1),
+      overallScore: round(mean(group.items.map((i) => i.overallScore)), 1),
+    }));
+  }
+
+  let summarySortState = { field: 'overallScore', dir: 'desc' };
+  function buildSummaryCard() {
+    const card = el('div', { class: 'card', id: 'summary-card' });
+    return card;
+  }
+  function renderSummaryTable() {
+    const card = $('#summary-card');
+    if (!card) return;
+    const summary = summarise(allCombinedRecords());
+    card.innerHTML = '';
+    card.appendChild(
+      el('div', { class: 'card-header' }, [
+        el('h2', {}, 'By AI Opportunity (mean of loaded responses)'),
+        el('span', { class: 'chip' }, `${summary.length} opportunities`),
+        el('div', { class: 'spacer' }),
+        el('button', { class: 'small', disabled: summary.length === 0, onclick: () => downloadCsv(summaryToCsv(sortSummary(summary)), `opportunity_summary_${timestampSlug()}.csv`) }, 'Export summary CSV'),
+      ]),
+    );
+    if (summary.length === 0) {
+      card.appendChild(el('p', { class: 'empty' }, 'Nothing to summarise yet.'));
+      return;
+    }
+    const cols = [
+      { key: 'opportunityName', label: 'AI Opportunity' },
+      { key: 'businessArea', label: 'Business Area' },
+      { key: 'count', label: 'Responses', num: true },
+      { key: 'impactScore', label: 'Impact', num: true },
+      { key: 'feasibilityScore', label: 'Feasibility', num: true },
+      { key: 'overallScore', label: 'Overall', num: true },
+    ];
+    const sorted = sortSummary(summary);
+    const table = el('table');
+    table.appendChild(
+      el(
+        'thead',
+        {},
+        el(
+          'tr',
+          {},
+          cols.map((c) =>
+            el(
+              'th',
+              {
+                class: 'sortable' + (c.num ? ' num' : ''),
+                onclick: () => {
+                  summarySortState = summarySortState.field === c.key ? { field: c.key, dir: summarySortState.dir === 'asc' ? 'desc' : 'asc' } : { field: c.key, dir: c.num ? 'desc' : 'asc' };
+                  renderSummaryTable();
+                },
+              },
+              c.label + (summarySortState.field === c.key ? (summarySortState.dir === 'asc' ? ' ↑' : ' ↓') : ''),
+            ),
+          ),
+        ),
+      ),
+    );
+    const tbody = el('tbody');
+    for (const s of sorted) {
+      tbody.appendChild(
+        el('tr', {}, [
+          el('td', {}, s.opportunityName),
+          el('td', { class: 'secondary-text' }, s.businessArea),
+          el('td', { class: 'num' }, String(s.count)),
+          el('td', { class: 'num' }, fmt(s.impactScore)),
+          el('td', { class: 'num' }, fmt(s.feasibilityScore)),
+          el('td', { class: 'num', style: 'font-weight: 600;' }, fmt(s.overallScore)),
+        ]),
+      );
+    }
+    table.appendChild(tbody);
+    const wrap = el('div', { class: 'table-wrap' });
+    wrap.appendChild(table);
+    card.appendChild(wrap);
+  }
+  function sortSummary(summary) {
+    const dir = summarySortState.dir === 'asc' ? 1 : -1;
+    return summary.slice().sort((a, b) => {
+      const av = a[summarySortState.field];
+      const bv = b[summarySortState.field];
+      if (typeof av === 'string' || typeof bv === 'string') return String(av).localeCompare(String(bv)) * dir;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (av - bv) * dir;
+    });
+  }
+  function summaryToCsv(summary) {
+    const header = ['AI Opportunity', 'Business Area', 'Responses', 'Impact Score', 'Feasibility Score', 'AI Opportunity Score'];
+    const rows = summary.map((s) => [s.opportunityName, s.businessArea, s.count, s.impactScore, s.feasibilityScore, s.overallScore]);
+    return [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n');
+  }
+
+  /* ---------------------------------------------------------- scatter -- */
+  const VB_W = 780;
+  const VB_H = 560;
+  const PAD = { top: 24, right: 24, bottom: 48, left: 56 };
+  const PLOT_W = VB_W - PAD.left - PAD.right;
+  const PLOT_H = VB_H - PAD.top - PAD.bottom;
+  const TICKS = [0, 25, 50, 75, 100];
+
+  function buildChartCard() {
+    const card = el('div', { class: 'card', id: 'chart-card' });
+    return card;
+  }
+  function renderChart() {
+    const card = $('#chart-card');
+    if (!card) return;
+    const summary = summarise(allCombinedRecords()).filter((s) => s.impactScore != null && s.feasibilityScore != null);
+    card.innerHTML = '';
+    card.appendChild(el('h2', {}, 'Impact vs Feasibility'));
+    card.appendChild(el('p', { class: 'small muted', style: 'margin-top: 2px;' }, 'One mark per AI opportunity, placed by the mean of its loaded responses. Quadrant lines sit at the median of what’s plotted, not a fixed midpoint.'));
+
+    if (summary.length === 0) {
+      card.appendChild(el('p', { class: 'empty' }, 'Load responses above to see the map.'));
+      return;
+    }
+
+    const midX = median(summary.map((s) => s.feasibilityScore));
+    const midY = median(summary.map((s) => s.impactScore));
+    const toX = (v) => PAD.left + (v / 100) * PLOT_W;
+    const toY = (v) => PAD.top + (1 - v / 100) * PLOT_H;
+    const radius = (count) => Math.min(20, 6 + Math.sqrt(Math.max(count, 1) - 1) * 4);
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${VB_W} ${VB_H}`);
+    svg.setAttribute('class', 'chart-surface');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', `Impact vs feasibility for ${summary.length} AI opportunities`);
+    const svgEl = (tag, attrs) => {
+      const n = document.createElementNS(svgNS, tag);
+      for (const [k, v] of Object.entries(attrs || {})) n.setAttribute(k, v);
+      return n;
+    };
+
+    // gridlines + ticks
+    for (const t of TICKS) {
+      const x = toX(t);
+      const y = toY(t);
+      svg.appendChild(svgEl('line', { x1: x, y1: PAD.top, x2: x, y2: PAD.top + PLOT_H, stroke: 'var(--line)', 'stroke-width': 1 }));
+      svg.appendChild(svgEl('line', { x1: PAD.left, y1: y, x2: PAD.left + PLOT_W, y2: y, stroke: 'var(--line)', 'stroke-width': 1 }));
+      const xt = svgEl('text', { x, y: PAD.top + PLOT_H + 20, 'text-anchor': 'middle', class: 'axis-tick' });
+      xt.textContent = t;
+      svg.appendChild(xt);
+      const yt = svgEl('text', { x: PAD.left - 10, y: y + 4, 'text-anchor': 'end', class: 'axis-tick' });
+      yt.textContent = t;
+      svg.appendChild(yt);
+    }
+    // quadrant lines (median-based)
+    svg.appendChild(svgEl('line', { x1: toX(midX), y1: PAD.top, x2: toX(midX), y2: PAD.top + PLOT_H, stroke: 'var(--line-strong)', 'stroke-width': 1, 'stroke-dasharray': '4 4' }));
+    svg.appendChild(svgEl('line', { x1: PAD.left, y1: toY(midY), x2: PAD.left + PLOT_W, y2: toY(midY), stroke: 'var(--line-strong)', 'stroke-width': 1, 'stroke-dasharray': '4 4' }));
+    // axes
+    svg.appendChild(svgEl('line', { x1: PAD.left, y1: PAD.top + PLOT_H, x2: PAD.left + PLOT_W, y2: PAD.top + PLOT_H, stroke: 'var(--line-strong)', 'stroke-width': 1 }));
+    svg.appendChild(svgEl('line', { x1: PAD.left, y1: PAD.top, x2: PAD.left, y2: PAD.top + PLOT_H, stroke: 'var(--line-strong)', 'stroke-width': 1 }));
+    const xTitle = svgEl('text', { x: PAD.left + PLOT_W / 2, y: VB_H - 8, 'text-anchor': 'middle', class: 'axis-title' });
+    xTitle.textContent = 'Feasibility score →';
+    svg.appendChild(xTitle);
+    const yTitle = svgEl('text', { x: 14, y: PAD.top + PLOT_H / 2, 'text-anchor': 'middle', class: 'axis-title', transform: `rotate(-90 14 ${PAD.top + PLOT_H / 2})` });
+    yTitle.textContent = 'Impact score →';
+    svg.appendChild(yTitle);
+
+    // marks, largest first so a single-response point never gets buried
+    const points = summary
+      .map((s) => ({ ...s, x: toX(s.feasibilityScore), y: toY(s.impactScore), r: radius(s.count) }))
+      .sort((a, b) => b.r - a.r);
+    for (const p of points) {
+      const g = svgEl('g', {});
+      const circle = svgEl('circle', { cx: p.x, cy: p.y, r: p.r, fill: 'var(--series)', 'fill-opacity': 0.72, stroke: 'var(--surface)', 'stroke-width': 2 });
+      const title = svgEl('title', {});
+      title.textContent = `${p.opportunityName} — Impact ${fmt(p.impactScore)}, Feasibility ${fmt(p.feasibilityScore)}, Overall ${fmt(p.overallScore)}, ${p.count} response(s)`;
+      circle.appendChild(title);
+      g.appendChild(circle);
+      svg.appendChild(g);
+    }
+    // Label the highest-scoring points, skipping any whose point sits too
+    // close (in pixels) to an already-placed one - two opportunities that
+    // score identically land on the exact same pixel and would otherwise
+    // draw overlapping, unreadable text. Every point still has its exact
+    // numbers on hover via <title> regardless of whether it's labelled.
+    const candidates = summary.slice().sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0));
+    const placed = [];
+    const labelled = new Set();
+    for (const s of candidates) {
+      if (labelled.size >= 8) break;
+      const px = toX(s.feasibilityScore);
+      const py = toY(s.impactScore);
+      if (placed.some((q) => Math.abs(q.x - px) < 110 && Math.abs(q.y - py) < 22)) continue;
+      placed.push({ x: px, y: py });
+      labelled.add(s.opportunityId);
+    }
+    for (const p of points) {
+      if (!labelled.has(p.opportunityId)) continue;
+      const flip = p.x > PAD.left + PLOT_W * 0.72;
+      const t = svgEl('text', { x: flip ? p.x - p.r - 6 : p.x + p.r + 6, y: p.y + 4, 'text-anchor': flip ? 'end' : 'start', class: 'point-label' });
+      t.textContent = p.opportunityName;
+      svg.appendChild(t);
+    }
+
+    card.appendChild(svg);
+  }
+
+  function renderCombineDerived() {
+    renderCombineStats();
+    renderCombinedTable();
+    renderSummaryTable();
+    renderChart();
+  }
+  function renderCombineView() {
+    buildCombineView();
+    renderCombineDerived();
+  }
+
+  /* =============================================================== boot = */
+  renderDataSourceInfo();
+  renderScoreView();
+  renderCombineView();
+})();
+</script>
+</body>
+</html>
