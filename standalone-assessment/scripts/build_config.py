@@ -69,6 +69,23 @@ FACTOR_ORDER = [
     {"key": "opex_cost", "category": "feasibility", "inverted": True, "column": "N"},
 ]
 
+# Curated "Business Function" options for the interview form's autocomplete
+# (sorted alphabetically when written out - see build_config()).
+BUSINESS_FUNCTIONS = [
+    "Leadership",
+    "Legal",
+    "Planning & Procurement",
+    "Supply Chain",
+    "Marketing & Branding",
+    "Product & Engineering",
+    "Finance",
+    "Merchandising",
+    "Store Operations",
+    "eCommerce",
+    "Customer Care",
+    "Other",
+]
+
 
 def split_name(raw: str) -> tuple[str, str]:
     """Splits 'Financial Impact \\n(revenue/margin...)' into name + subtitle."""
@@ -200,7 +217,10 @@ def build_config(workbook_path: Path) -> dict:
     impact_sum = sum(f["weight"] for f in factors if f["category"] == "impact")
     feas_sum = sum(f["weight"] for f in factors if f["category"] == "feasibility")
 
-    teams = sorted({t for o in opportunities for t in o["relevantTeams"]})
+    # Fixed, curated list for the "Business Function" field's autocomplete -
+    # not derived from the workbook, so it stays stable regardless of what
+    # teams happen to appear in the opportunity catalog.
+    teams = sorted(BUSINESS_FUNCTIONS, key=str.lower)
     business_areas = sorted({o["businessArea"] for o in opportunities})
 
     return {

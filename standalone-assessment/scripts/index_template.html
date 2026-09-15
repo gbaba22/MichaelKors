@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<title>AI Opportunity Assessment</title>
+<title>Capri AI CoE Opportunity Discovery</title>
 <style>
 /* ------------------------------------------------------------- tokens --
  * Light is the base; dark redefines only the values. No external fonts,
@@ -75,14 +75,7 @@ p { margin: 0; }
   background: var(--surface); border-bottom: 1px solid var(--line);
   position: sticky; top: 0; z-index: 20; flex-wrap: wrap;
 }
-.topbar .brand { font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-.topbar .brand small {
-  color: var(--ink-muted); font-weight: 400; font-size: 0.78rem; letter-spacing: 0.02em; text-transform: uppercase;
-  max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom;
-}
-@media (max-width: 480px) {
-  .topbar .brand small { max-width: 110px; }
-}
+.topbar .brand { font-weight: 600; letter-spacing: -0.01em; min-width: 0; }
 .spacer { flex: 1; }
 .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 20px 72px; }
 .stack { display: flex; flex-direction: column; gap: 18px; }
@@ -198,16 +191,16 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 <body>
 <div class="shell">
   <header class="topbar">
-    <div class="brand">AI Opportunity Assessment <small id="framework-tag">standalone</small></div>
+    <div class="brand">Capri AI CoE Opportunity Discovery</div>
+    <div class="spacer"></div>
     <nav class="tabs" aria-label="Sections">
       <button type="button" id="tab-score" aria-current="true">AI Discovery</button>
       <button type="button" id="tab-combine" aria-current="false">Analyze Results</button>
     </nav>
-    <div class="spacer"></div>
   </header>
 
   <div class="container">
-    <details class="data-source" id="data-source-details">
+    <details class="data-source" id="data-source-details" hidden>
       <summary id="data-source-summary">Data source</summary>
       <div class="data-source-body stack" style="gap: 10px; padding-top: 4px;">
         <p class="small secondary-text" id="data-source-info"></p>
@@ -397,14 +390,11 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   /* ==================================================== data source UI == */
   function renderDataSourceInfo() {
     const info = $('#data-source-info');
-    const tag = $('#framework-tag');
     const genAt = CONFIG.generatedAt ? new Date(CONFIG.generatedAt).toLocaleString() : 'unknown time';
     info.textContent =
       `Using framework generated from "${CONFIG.generatedFrom}" (${genAt}). ` +
       `${CONFIG.opportunities.length} AI opportunities, ${CONFIG.factors.length} factors. ` +
       `Overall = Impact × ${Math.round(CONFIG.overall.impactWeight * 100)}% + Feasibility × ${Math.round(CONFIG.overall.feasibilityWeight * 100)}%.`;
-    tag.textContent = CONFIG.generatedFrom;
-    tag.title = CONFIG.generatedFrom;
   }
   $('#config-file-input').addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -589,7 +579,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     const commentInput = el('textarea', {
       class: 'factor-comment',
       rows: 2,
-      placeholder: 'Optional comments on this factor…',
+      placeholder: 'Additional Comments',
       'aria-label': factor.name + ' comments',
     });
     commentInput.value = currentComments[factor.key] || '';

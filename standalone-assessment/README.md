@@ -1,4 +1,4 @@
-# AI Opportunity Assessment: standalone scoring tool
+# Capri AI CoE Opportunity Discovery: standalone scoring tool
 
 A single self-contained web page for scoring AI opportunities against the
 Michael Kors / Capri framework. No install, no server, no database: open
@@ -88,12 +88,13 @@ rubric, or the opportunity catalog:
 3. The script prints a sanity check (opportunity/factor counts, whether both
    weight blocks sum to 1.0) and warns if something looks off.
 
-You can also swap the framework **without regenerating anything**: open the
-page, expand **Data source** at the top, and load a `config.json` file
-there. This replaces the in-memory framework for that browser tab only (the
-bundled one is restored on reload, or via the "Use bundled framework"
-button); useful for trying a draft framework before baking it into a new
-`index.html`.
+You can also swap the framework **without regenerating anything**, via a
+"Data source" section that loads a `config.json` file at runtime and
+replaces the in-memory framework for that browser tab only. It's hidden
+from the page by default (not something day-to-day users need); to use it,
+remove the `hidden` attribute from `#data-source-details` in
+`scripts/index_template.html` and rebuild, try the draft framework, then
+put `hidden` back before shipping.
 
 ## How the scores are calculated
 
@@ -150,8 +151,10 @@ scripts/
 - **`Facilitator`/`Business owner` fields, not a team filter.** This build
   assumes the CoE-interview flow (one facilitator scores any opportunity
   while interviewing its business owner), so the opportunity picker is never
-  filtered by team. The full team list is still captured on each
-  opportunity's record for reference.
+  filtered by team.
+- **Business Function options are a fixed, curated list**
+  (`BUSINESS_FUNCTIONS` in `scripts/build_config.py`), not derived from the
+  workbook - edit that constant and rebuild to change the list.
 - Direct-to-file saving uses the File System Access API (Chrome/Edge), with
   IndexedDB to remember the connected folder between reloads. Every browser
   tested (current Chrome/Edge/Firefox/Safari) still supports the fallback

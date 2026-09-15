@@ -1,6 +1,6 @@
 {
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T15:54:57Z",
+  "generatedAt": "2026-09-15T16:13:33Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -677,20 +677,16 @@
     }
   ],
   "teams": [
-    "Asset Protection",
-    "CRM",
-    "Creative Services",
     "Customer Care",
-    "Digital Commerce",
-    "Distribution Operations",
-    "FP&A",
-    "Facilities",
+    "eCommerce",
     "Finance",
-    "Logistics",
-    "Marketing",
+    "Leadership",
+    "Legal",
+    "Marketing & Branding",
     "Merchandising",
-    "Planning",
-    "Procurement",
+    "Other",
+    "Planning & Procurement",
+    "Product & Engineering",
     "Store Operations",
     "Supply Chain"
   ],
