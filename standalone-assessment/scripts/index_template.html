@@ -35,14 +35,13 @@
   --cat-2: #eb6834;
   --cat-3: #1baf7a;
   --cat-4: #eda100;
-  /* sequential blue, 5 steps from the documented 100-700 ramp - colors the
-   * chart's dots by mean Overall Score. Light: pale = low, deep = high
-   * (recedes toward the light surface). */
-  --seq-1: #86b6ef;
-  --seq-2: #5598e7;
-  --seq-3: #2a78d6;
-  --seq-4: #1c5cab;
-  --seq-5: #104281;
+  /* Impact-vs-Feasibility quadrant colors. Blue is --series/--accent and
+   * orange is --cat-2, reused as-is; green and red are new since neither
+   * --good nor --critical (reserved status colors) may double as a
+   * series identity. Green is the palette's pure-green categorical slot,
+   * identical hex in both modes. */
+  --quad-green: #008300;
+  --quad-red: #e34948;
   --radius: 10px;
   --radius-sm: 6px;
   --shadow: 0 1px 2px rgba(11, 11, 11, 0.05), 0 8px 24px rgba(11, 11, 11, 0.05);
@@ -68,13 +67,7 @@
     --cat-2: #d95926;
     --cat-3: #199e70;
     --cat-4: #c98500;
-    /* Dark: darker/muted = low (recedes toward the dark surface), lighter
-     * = high (stands out). Same documented steps, anchor flipped. */
-    --seq-1: #184f95;
-    --seq-2: #256abf;
-    --seq-3: #3987e5;
-    --seq-4: #6da7ec;
-    --seq-5: #9ec5f4;
+    --quad-red: #e66767;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 }
@@ -193,10 +186,9 @@ tbody tr:hover { background: var(--surface-hover); }
 
 /* chart */
 .chart-surface { width: 100%; height: auto; display: block; }
-.chart-legend { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.78rem; color: var(--ink-muted); }
-.chart-legend .legend-title { font-weight: 600; color: var(--ink-secondary); margin-right: 4px; }
-.chart-legend .swatch { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
-.chart-legend .ramp { display: flex; gap: 2px; }
+.chart-legend { display: flex; align-items: center; gap: 14px; row-gap: 6px; margin-top: 10px; font-size: 0.78rem; color: var(--ink-secondary); flex-wrap: wrap; }
+.chart-legend .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.chart-legend .swatch { width: 10px; height: 10px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
 .axis-tick { fill: var(--ink-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .axis-title { fill: var(--ink-secondary); font-size: 12px; font-weight: 500; }
 .quadrant-label { fill: var(--ink-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -213,10 +205,16 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 dialog.detail-dialog {
   border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink);
   padding: 0; width: min(560px, calc(100vw - 32px)); max-height: min(720px, calc(100vh - 64px));
+  overflow: hidden;
   box-shadow: var(--shadow);
 }
+/* Guard the flex layout behind [open] - an unguarded `display` on the bare
+ * `dialog` selector would beat the UA stylesheet's closed-state
+ * `display: none` (author origin outranks user-agent origin at equal
+ * specificity) and leak the dialog into the page while "closed". */
+dialog.detail-dialog[open] { display: flex; flex-direction: column; }
 dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
-.detail-dialog-body { padding: 20px; max-height: min(720px, calc(100vh - 64px)); overflow-y: auto; }
+.detail-dialog-body { padding: 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
 .detail-header { display: flex; align-items: flex-start; gap: 12px; }
 .detail-header .spacer { flex: 1; }
 .detail-close { border: none; background: none; padding: 4px; font-size: 1.1rem; line-height: 1; color: var(--ink-muted); }
@@ -346,6 +344,18 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const p = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
   };
+  /** YYYYMMDD-HHMM (no seconds) - for the per-submission filename, kept
+   * distinct from timestampSlug() above, which the Analyze Results CSV
+   * exports still use. */
+  const filenameStamp = () => {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+  };
+  /** Strips only filesystem-illegal characters, keeping the text otherwise
+   * human-readable (unlike slugify(), which lowercases and dash-joins
+   * everything) - for filename segments built from free-typed fields. */
+  const sanitizeFilenamePart = (s) => String(s || '').trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ');
   const median = (values) => {
     const v = values.filter((x) => x != null).sort((a, b) => a - b);
     if (v.length === 0) return null;
@@ -1064,7 +1074,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       }
     }
 
-    const base = `assessment_${slugify(opportunityName)}_${timestampSlug()}`;
+    const base = `${filenameStamp()}-${sanitizeFilenamePart(record.businessOwnerTeam)}-${sanitizeFilenamePart(opportunityName)}`;
     if (!saved) {
       // Fallback: unsupported browser, not connected, declined, or the
       // write above failed - a completed interview is never lost.
@@ -1515,17 +1525,27 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const toX = (v) => PAD.left + (v / 100) * PLOT_W;
     const toY = (v) => PAD.top + (1 - v / 100) * PLOT_H;
     const radius = (count) => Math.min(20, 6 + Math.sqrt(Math.max(count, 1) - 1) * 4);
-    // Colors each dot by its mean Overall Score - a sequential ramp (5
-    // steps of the palette's documented blue scale), not a categorical one:
-    // the identity of a dot is already its label/tooltip, so color is free
-    // to carry the headline number instead.
-    const scoreColor = (score) => {
+    // Colors each dot by which quadrant it falls in (split at the same
+    // median lines drawn below, so color and position never disagree):
+    // high impact + high feasibility = green, high impact + low
+    // feasibility = blue, low impact + high feasibility = orange, low
+    // impact + low feasibility = red. Shade (opacity) then layers in the
+    // mean Overall Score within that quadrant - deeper = higher.
+    const quadrantColor = (impact, feasibility) => {
+      const highImpact = (impact ?? 0) >= midY;
+      const highFeasibility = (feasibility ?? 0) >= midX;
+      if (highImpact && highFeasibility) return 'var(--quad-green)';
+      if (highImpact && !highFeasibility) return 'var(--series)';
+      if (!highImpact && highFeasibility) return 'var(--cat-2)';
+      return 'var(--quad-red)';
+    };
+    const scoreOpacity = (score) => {
       const s = score == null ? 0 : score;
-      if (s >= 80) return 'var(--seq-5)';
-      if (s >= 60) return 'var(--seq-4)';
-      if (s >= 40) return 'var(--seq-3)';
-      if (s >= 20) return 'var(--seq-2)';
-      return 'var(--seq-1)';
+      if (s >= 80) return 1;
+      if (s >= 60) return 0.9;
+      if (s >= 40) return 0.75;
+      if (s >= 20) return 0.6;
+      return 0.45;
     };
 
     const svgNS = 'http://www.w3.org/2000/svg';
@@ -1572,7 +1592,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       .sort((a, b) => b.r - a.r);
     for (const p of points) {
       const g = svgEl('g', {});
-      const circle = svgEl('circle', { cx: p.x, cy: p.y, r: p.r, fill: scoreColor(p.overallScore), 'fill-opacity': 0.85, stroke: 'var(--surface)', 'stroke-width': 2 });
+      const circle = svgEl('circle', { cx: p.x, cy: p.y, r: p.r, fill: quadrantColor(p.impactScore, p.feasibilityScore), 'fill-opacity': scoreOpacity(p.overallScore), stroke: 'var(--surface)', 'stroke-width': 2 });
       const title = svgEl('title', {});
       title.textContent = `${p.opportunityName}: Impact ${fmt(p.impactScore)}, Feasibility ${fmt(p.feasibilityScore)}, Overall ${fmt(p.overallScore)}, ${p.count} response(s)`;
       circle.appendChild(title);
@@ -1604,19 +1624,20 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     }
 
     card.appendChild(svg);
+    const quadrantLegendItems = [
+      { color: 'var(--quad-green)', label: 'High Impact, High Feasibility' },
+      { color: 'var(--series)', label: 'High Impact, Low Feasibility' },
+      { color: 'var(--cat-2)', label: 'Low Impact, High Feasibility' },
+      { color: 'var(--quad-red)', label: 'Low Impact, Low Feasibility' },
+    ];
     card.appendChild(
-      el('div', { class: 'chart-legend' }, [
-        el('span', { class: 'legend-title' }, 'Overall Score'),
-        'Low',
-        el(
-          'span',
-          { class: 'ramp' },
-          ['var(--seq-1)', 'var(--seq-2)', 'var(--seq-3)', 'var(--seq-4)', 'var(--seq-5)'].map((c) =>
-            el('span', { class: 'swatch', style: `background: ${c};` }),
-          ),
+      el(
+        'div',
+        { class: 'chart-legend' },
+        quadrantLegendItems.map((item) =>
+          el('span', { class: 'legend-item' }, [el('span', { class: 'swatch', style: `background: ${item.color};` }), item.label]),
         ),
-        'High',
-      ]),
+      ),
     );
   }
 

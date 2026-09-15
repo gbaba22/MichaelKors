@@ -26,7 +26,9 @@ Michael Kors / Capri framework. No install, no server, no database: open
      connected to and how many responses have been saved. Each submission
      also downloads a small standalone `.json` for just that one response,
      as a portable copy alongside the running file (handy for emailing a
-     single interview to someone without sending the whole accumulated file).
+     single interview to someone without sending the whole accumulated
+     file). Named `YYYYMMDD-HHMM-<Business Function>-<AI Opportunity>.json`
+     so it's identifiable at a glance in a Downloads folder.
    - **In Firefox, Safari, or if you cancel/decline the folder prompt**,
      direct saving isn't available, so each submission instead downloads its
      own `.json` and `.csv` pair, exactly as before. The status card
@@ -39,11 +41,15 @@ Michael Kors / Capri framework. No install, no server, no database: open
    laptop's whole accumulated file, or a batch of older per-submission
    files, or a mix of both (from this laptop or emailed in from others).
    You'll see the **Loaded Opportunities Summary** stat tiles, **By
-   Individual Discovery** (every response, including Executive Sponsor),
-   a **By AI Opportunity** rollup (mean Impact/Feasibility/Overall across
-   however many people scored it), and an Impact-vs-Feasibility chart whose
-   dots are shaded by mean Overall Score (pale = lower, deep blue =
-   higher), plus buttons to export both tables as CSV.
+   Individual Discovery** (every response, including Executive Sponsor,
+   with a **More details** link per row opening every factor's score,
+   rubric wording, and comment), a **By AI Opportunity** rollup (mean
+   Impact/Feasibility/Overall across however many people scored it), and
+   an Impact-vs-Feasibility chart colored by quadrant (green = high
+   impact + high feasibility, blue = high impact only, orange = high
+   feasibility only, red = neither), shaded darker for a higher mean
+   Overall Score within that quadrant, plus buttons to export both tables
+   as CSV.
 
 Nothing here ever calls out to a network. Files stay on the machine that
 generated them until someone explicitly downloads, emails, or uploads one.
