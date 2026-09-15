@@ -20,7 +20,10 @@ Michael Kors / Capri framework. No install, no server, no database: open
      appends a row; you always end up with exactly one growing json and one
      growing csv per laptop, never a pile of per-response files. The "Saved
      responses" card at the bottom of the form shows which folder you're
-     connected to and how many responses have been saved.
+     connected to and how many responses have been saved. Each submission
+     also downloads a small standalone `.json` for just that one response,
+     as a portable copy alongside the running file (handy for emailing a
+     single interview to someone without sending the whole accumulated file).
    - **In Firefox, Safari, or if you cancel/decline the folder prompt**,
      direct saving isn't available, so each submission instead downloads its
      own `.json` and `.csv` pair, exactly as before. The status card

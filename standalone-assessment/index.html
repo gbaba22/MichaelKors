@@ -231,7 +231,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T14:30:31Z",
+  "generatedAt": "2026-09-15T15:44:03Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1707,12 +1707,17 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       }
     }
 
+    const base = `assessment_${slugify(opportunityName)}_${timestampSlug()}`;
     if (!saved) {
       // Fallback: unsupported browser, not connected, declined, or the
       // write above failed - a completed interview is never lost.
-      const base = `assessment_${slugify(opportunityName)}_${timestampSlug()}`;
       downloadJson(record, base + '.json');
       downloadCsv(buildCsv([record]), base + '.csv');
+    } else {
+      // Even when the connected-folder save succeeds, also hand the
+      // facilitator a standalone copy of just this response - a portable
+      // per-opportunity file, on top of (not instead of) the running one.
+      downloadJson(record, base + '.json');
     }
 
     renderFileSyncStatus();
@@ -1720,7 +1725,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     $('#submit-feedback').innerHTML = '';
     const noticeIsError = !saved && !!fileSyncError && fileSyncMode === 'blocked';
     const noticeText = saved
-      ? `Saved "${opportunityName}" to ${DIRECT_SAVE_JSON_NAME}. Ready for the next interview.`
+      ? `Saved "${opportunityName}" to ${DIRECT_SAVE_JSON_NAME} and downloaded a copy as JSON. Ready for the next interview.`
       : noticeIsError
         ? `Couldn’t save to the connected file (${fileSyncError}); downloaded "${opportunityName}" as a separate file instead.`
         : `Saved "${opportunityName}": JSON and CSV downloaded. Ready for the next interview.`;
