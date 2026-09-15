@@ -237,8 +237,6 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   const DEFAULT_CONFIG = JSON.parse(document.getElementById('config-data').textContent);
   let CONFIG = DEFAULT_CONFIG;
 
-  const SESSION_KEY = 'mk-ai-assessment-session-v1';
-
   /**
    * Friendly labels shown on the five score buttons, in place of the raw
    * 0/5/20/50/100 values (scores stay internal - used only for the actual
@@ -377,24 +375,6 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     downloadBlob('﻿' + csvText, filename, 'text/csv;charset=utf-8;');
   }
 
-  /* ======================================================== session log */
-  function loadSession() {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
-  }
-  function saveSession(records) {
-    try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(records));
-    } catch (e) {
-      /* private browsing / storage disabled - session log just won't persist across reloads */
-    }
-  }
-  let sessionRecords = loadSession();
-
   /* ============================================================ tabs ==== */
   const tabScore = $('#tab-score');
   const tabCombine = $('#tab-combine');
@@ -462,7 +442,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
         buildFactorsCard(),
         buildLiveScorePanel(),
         buildSubmitRow(),
-        buildSessionCard(),
+        buildFileSyncCard(),
       ]),
     );
   }
@@ -623,7 +603,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     const submitBtn = el(
       'button',
       { class: 'primary', id: 'submit-btn', disabled: true, onclick: handleSubmit },
-      'Save & download this response',
+      'Submit Assessment',
     );
     const resetBtn = el('button', { class: 'ghost', onclick: resetOpportunityFields }, 'Clear this opportunity’s answers');
     row.appendChild(submitBtn);
@@ -651,7 +631,286 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     btn.disabled = !complete;
   }
 
-  function handleSubmit() {
+  /* ================================================ direct file saving ==
+   * Instead of downloading a new file per submission, keep ONE json and one
+   * csv per laptop and append into them - via the File System Access API
+   * (Chrome/Edge only; file:// pages do have access to it). Where it's not
+   * available, or the user declines/cancels, every submission falls back to
+   * exactly the old per-submission download so the tool always works.
+   */
+  const FSA_SUPPORTED = typeof window.showDirectoryPicker === 'function';
+  const DIRECT_SAVE_JSON_NAME = 'ai_opportunity_assessments.json';
+  const DIRECT_SAVE_CSV_NAME = 'ai_opportunity_assessments.csv';
+  const FSA_DB_NAME = 'mk-ai-assessment-fsa-v1';
+  const FSA_STORE_NAME = 'handles';
+  const FSA_HANDLE_KEY = 'directory';
+
+  let dirHandle = null;
+  // 'unsupported' | 'unconnected' | 'connected' | 'reconnect' | 'blocked' | 'declined'
+  let fileSyncMode = FSA_SUPPORTED ? 'unconnected' : 'unsupported';
+  let fileSyncCount = null;
+  let fileSyncLastSaved = null;
+  let fileSyncError = null;
+
+  function openFsaDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(FSA_DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(FSA_STORE_NAME);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function saveDirHandle(handle) {
+    try {
+      const db = await openFsaDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(FSA_STORE_NAME, 'readwrite');
+        tx.objectStore(FSA_STORE_NAME).put(handle, FSA_HANDLE_KEY);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      /* IndexedDB unavailable (e.g. private browsing) - direct save still
+         works for the rest of this page load, it just won't be remembered
+         after a reload. */
+    }
+  }
+  async function loadDirHandle() {
+    try {
+      const db = await openFsaDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(FSA_STORE_NAME, 'readonly');
+        const req = tx.objectStore(FSA_STORE_NAME).get(FSA_HANDLE_KEY);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+  async function clearDirHandle() {
+    try {
+      const db = await openFsaDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(FSA_STORE_NAME, 'readwrite');
+        tx.objectStore(FSA_STORE_NAME).delete(FSA_HANDLE_KEY);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      /* nothing to do - handle just won't be found next time either */
+    }
+  }
+
+  /** Empty text -> no records yet. Anything else must be a JSON array -
+   * never guess/overwrite content this tool didn't write. */
+  function parseExistingRecords(text) {
+    const trimmed = (text || '').trim();
+    if (!trimmed) return [];
+    const parsed = JSON.parse(trimmed);
+    if (!Array.isArray(parsed)) throw new Error('not an array');
+    return parsed;
+  }
+  function appendRecord(existing, record) {
+    return existing.concat([record]);
+  }
+
+  /**
+   * Reads the current json file (creating it if absent), appends `record`,
+   * writes the whole array back, then fully regenerates the csv from that
+   * same array (never round-tripped/parsed back - a csv that's been opened
+   * and resaved in Excel is not something to trust as a data source).
+   * Read-then-parse happens entirely before any createWritable() call,
+   * since a writable stream truncates the file the moment it's opened.
+   */
+  async function writeRecordToDirectory(handle, record) {
+    const jsonHandle = await handle.getFileHandle(DIRECT_SAVE_JSON_NAME, { create: true });
+    const existingText = await (await jsonHandle.getFile()).text();
+    let existing;
+    try {
+      existing = parseExistingRecords(existingText);
+    } catch (e) {
+      throw new Error(
+        `"${DIRECT_SAVE_JSON_NAME}" in this folder doesn't look like a file this tool created - choose a different folder to avoid overwriting it`,
+      );
+    }
+    const all = appendRecord(existing, record);
+
+    const jsonWritable = await jsonHandle.createWritable();
+    await jsonWritable.write(JSON.stringify(all, null, 2));
+    await jsonWritable.close();
+
+    const csvHandle = await handle.getFileHandle(DIRECT_SAVE_CSV_NAME, { create: true });
+    const csvWritable = await csvHandle.createWritable();
+    await csvWritable.write('﻿' + buildCsv(all));
+    await csvWritable.close();
+
+    return all.length;
+  }
+
+  /** Peeks the connected folder's current record count without writing -
+   * used right after connecting/reconnecting so the status line is accurate
+   * even before this session's first submission. */
+  async function refreshFileSyncCount() {
+    if (!dirHandle) return;
+    try {
+      const jsonHandle = await dirHandle.getFileHandle(DIRECT_SAVE_JSON_NAME, { create: true });
+      const text = await (await jsonHandle.getFile()).text();
+      fileSyncCount = parseExistingRecords(text).length;
+    } catch (e) {
+      fileSyncCount = null;
+    }
+  }
+
+  /** Opens the native folder picker - must be called as the first awaited
+   * thing in a click handler, or Chromium won't honour the click's user
+   * activation. Throws AbortError if the user cancels. */
+  async function connectDirectory() {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    dirHandle = handle;
+    fileSyncMode = 'connected';
+    fileSyncError = null;
+    await saveDirHandle(handle);
+    await refreshFileSyncCount();
+    return handle;
+  }
+
+  /** "Change folder…" / "Connect a folder" button handler - a genuine click
+   * gesture of its own, independent of submit. */
+  async function changeDirectory() {
+    if (!FSA_SUPPORTED) return;
+    try {
+      await connectDirectory();
+    } catch (e) {
+      if (!(e && e.name === 'AbortError')) {
+        fileSyncError = e && e.message ? e.message : 'Could not connect to that folder.';
+      }
+    }
+    renderFileSyncStatus();
+  }
+
+  /** "Reconnect" button handler, for when permission needs reconfirming
+   * (typically after a full browser restart). */
+  async function reconnectDirectory() {
+    if (!dirHandle) return;
+    try {
+      const permission = await dirHandle.requestPermission({ mode: 'readwrite' });
+      if (permission === 'granted') {
+        fileSyncMode = 'connected';
+        fileSyncError = null;
+        await refreshFileSyncCount();
+      } else {
+        dirHandle = null;
+        fileSyncMode = 'unconnected';
+        await clearDirHandle();
+      }
+    } catch (e) {
+      dirHandle = null;
+      fileSyncMode = 'unconnected';
+    }
+    renderFileSyncStatus();
+  }
+
+  /** Tries to silently resume a previously-connected folder at boot. Only
+   * ever queries permission (no gesture needed) - never requests it, since
+   * that needs a click; a real reconfirmation goes through the Reconnect
+   * button instead. */
+  async function tryRestoreDirHandle() {
+    if (!FSA_SUPPORTED) return;
+    const handle = await loadDirHandle();
+    if (!handle) return;
+    try {
+      const permission = await handle.queryPermission({ mode: 'readwrite' });
+      if (permission === 'granted') {
+        dirHandle = handle;
+        fileSyncMode = 'connected';
+        await refreshFileSyncCount();
+      } else if (permission === 'prompt') {
+        dirHandle = handle;
+        fileSyncMode = 'reconnect';
+      } else {
+        await clearDirHandle();
+      }
+    } catch (e) {
+      /* leave fileSyncMode at its default ('unconnected') */
+    }
+    renderFileSyncStatus();
+  }
+
+  function buildFileSyncCard() {
+    return el('div', { class: 'card', id: 'filesync-card' });
+  }
+  function renderFileSyncStatus() {
+    const card = $('#filesync-card');
+    if (!card) return;
+    card.innerHTML = '';
+    card.appendChild(el('div', { class: 'card-header' }, [el('h2', {}, 'Saved responses')]));
+
+    if (fileSyncMode === 'unsupported') {
+      card.appendChild(
+        el(
+          'p',
+          { class: 'notice' },
+          'Direct file saving isn’t available in this browser — each submission downloads its own JSON and CSV file instead. Chrome or Edge can save directly into one running file.',
+        ),
+      );
+      return;
+    }
+
+    if (fileSyncMode === 'connected') {
+      const countText = fileSyncCount == null ? '' : ` · ${fileSyncCount} response${fileSyncCount === 1 ? '' : 's'} saved`;
+      const savedText = fileSyncLastSaved ? ` · last saved ${fileSyncLastSaved.toLocaleTimeString()}` : '';
+      card.appendChild(
+        el('p', { class: 'small secondary-text' }, [
+          'Saving directly to ',
+          el('strong', {}, DIRECT_SAVE_JSON_NAME),
+          ' in ',
+          el('strong', {}, (dirHandle && dirHandle.name) || 'the connected folder'),
+          countText + savedText,
+        ]),
+      );
+      card.appendChild(el('button', { class: 'small ghost', onclick: changeDirectory }, 'Change folder…'));
+      return;
+    }
+
+    if (fileSyncMode === 'reconnect') {
+      card.appendChild(
+        el(
+          'p',
+          { class: 'notice' },
+          `Reconnect to "${(dirHandle && dirHandle.name) || 'your save folder'}" to keep appending to your existing file. Until then, submissions will download as separate files.`,
+        ),
+      );
+      card.appendChild(el('button', { class: 'small primary', onclick: reconnectDirectory }, 'Reconnect'));
+      return;
+    }
+
+    if (fileSyncMode === 'blocked') {
+      card.appendChild(el('p', { class: 'notice error' }, fileSyncError || 'Could not save to the connected folder.'));
+      card.appendChild(el('button', { class: 'small primary', onclick: changeDirectory }, 'Choose a different folder…'));
+      return;
+    }
+
+    if (fileSyncMode === 'declined') {
+      card.appendChild(
+        el('p', { class: 'small muted' }, 'Each submission is downloading as its own file. Connect a folder to save everything into one file instead.'),
+      );
+      card.appendChild(el('button', { class: 'small', onclick: changeDirectory }, 'Connect a folder'));
+      return;
+    }
+
+    // 'unconnected'
+    card.appendChild(
+      el(
+        'p',
+        { class: 'small muted' },
+        'The first submission will ask you to choose (or create) a folder — every response after that saves straight into one file there.',
+      ),
+    );
+    card.appendChild(el('button', { class: 'small', onclick: changeDirectory }, 'Connect a folder now (optional)'));
+  }
+
+  async function handleSubmit() {
     const impact = round(categoryScore(CONFIG.factors, currentAnswers, 'impact'), 1);
     const feasibility = round(categoryScore(CONFIG.factors, currentAnswers, 'feasibility'), 1);
     const overall = round(overallScore(impact, feasibility, CONFIG.overall), 1);
@@ -677,18 +936,55 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       frameworkVersion: CONFIG.generatedFrom,
     };
 
-    const base = `assessment_${slugify(currentOpportunity.name)}_${timestampSlug()}`;
-    downloadJson(record, base + '.json');
-    downloadCsv(buildCsv([record]), base + '.csv');
+    $('#submit-btn').disabled = true;
 
-    sessionRecords = sessionRecords.concat([record]);
-    saveSession(sessionRecords);
-    renderSessionTable();
+    // First-ever submit on a supported browser: this click IS the user
+    // gesture, so the picker must be the very first thing awaited below -
+    // nothing async may happen before it, or Chromium won't honour it.
+    // Every submit after the first reuses the in-memory handle silently.
+    if (FSA_SUPPORTED && !dirHandle && fileSyncMode === 'unconnected') {
+      try {
+        await connectDirectory();
+      } catch (e) {
+        // Cancelled or failed - don't re-prompt on every future click; the
+        // status card offers a manual way back in.
+        fileSyncMode = 'declined';
+      }
+    }
+
+    let saved = false;
+    if (dirHandle && fileSyncMode === 'connected') {
+      try {
+        fileSyncCount = await writeRecordToDirectory(dirHandle, record);
+        fileSyncLastSaved = new Date();
+        fileSyncError = null;
+        saved = true;
+      } catch (e) {
+        // Never silently overwrite unrecognized content, and never retry
+        // the same broken folder on every future submit.
+        fileSyncError = e && e.message ? e.message : 'Could not save to the connected file.';
+        fileSyncMode = 'blocked';
+      }
+    }
+
+    if (!saved) {
+      // Fallback: unsupported browser, not connected, declined, or the
+      // write above failed - a completed interview is never lost.
+      const base = `assessment_${slugify(currentOpportunity.name)}_${timestampSlug()}`;
+      downloadJson(record, base + '.json');
+      downloadCsv(buildCsv([record]), base + '.csv');
+    }
+
+    renderFileSyncStatus();
 
     $('#submit-feedback').innerHTML = '';
-    $('#submit-feedback').appendChild(
-      el('span', { class: 'notice success' }, `Saved "${currentOpportunity.name}" — JSON and CSV downloaded. Ready for the next interview.`),
-    );
+    const noticeIsError = !saved && !!fileSyncError && fileSyncMode === 'blocked';
+    const noticeText = saved
+      ? `Saved "${currentOpportunity.name}" to ${DIRECT_SAVE_JSON_NAME}. Ready for the next interview.`
+      : noticeIsError
+        ? `Couldn’t save to the connected file (${fileSyncError}) — downloaded "${currentOpportunity.name}" as a separate file instead.`
+        : `Saved "${currentOpportunity.name}" — JSON and CSV downloaded. Ready for the next interview.`;
+    $('#submit-feedback').appendChild(el('span', { class: `notice ${noticeIsError ? 'error' : 'success'}` }, noticeText));
 
     // Move on to the next opportunity; keep facilitator details for the next interview.
     currentOpportunity = null;
@@ -702,75 +998,17 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     updateSubmitEnabled();
   }
 
-  function buildSessionCard() {
-    const card = el('div', { class: 'card', id: 'session-card' });
-    return card;
-  }
-  function renderSessionTable() {
-    const card = $('#session-card');
-    if (!card) return;
-    card.innerHTML = '';
-    card.appendChild(
-      el('div', { class: 'card-header' }, [
-        el('h2', {}, 'This browser’s session'),
-        el('span', { class: 'chip' }, `${sessionRecords.length} submitted`),
-        el('div', { class: 'spacer' }),
-        el('button', { class: 'small', onclick: () => downloadCsv(buildCsv(sessionRecords), `session_${timestampSlug()}.csv`), disabled: sessionRecords.length === 0 }, 'Download session as CSV'),
-        el(
-          'button',
-          {
-            class: 'small ghost',
-            disabled: sessionRecords.length === 0,
-            onclick: () => {
-              if (!confirm('Clear all responses saved in this browser? Already-downloaded files are unaffected.')) return;
-              sessionRecords = [];
-              saveSession(sessionRecords);
-              renderSessionTable();
-            },
-          },
-          'Clear session',
-        ),
-      ]),
-    );
-    if (sessionRecords.length === 0) {
-      card.appendChild(el('p', { class: 'empty' }, 'Responses you submit in this browser are listed here and can be downloaded together at any time.'));
-      return;
-    }
-    const wrap = el('div', { class: 'table-wrap' });
-    const table = el('table');
-    table.appendChild(
-      el('thead', {}, el('tr', {}, ['AI Opportunity', 'Business Owner', 'Impact', 'Feasibility', 'Overall', 'Submitted'].map((h) => el('th', {}, h)))),
-    );
-    const tbody = el('tbody');
-    for (const r of sessionRecords.slice().reverse()) {
-      tbody.appendChild(
-        el('tr', {}, [
-          el('td', {}, r.opportunityName),
-          el('td', {}, `${r.businessOwnerName} (${r.businessOwnerTeam})`),
-          el('td', { class: 'num' }, fmt(r.impactScore)),
-          el('td', { class: 'num' }, fmt(r.feasibilityScore)),
-          el('td', { class: 'num' }, fmt(r.overallScore)),
-          el('td', {}, new Date(r.submittedAt).toLocaleString()),
-        ]),
-      );
-    }
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-    card.appendChild(wrap);
-  }
-
   function renderScoreView() {
     buildScoreView();
     renderOpportunityContext();
     renderFactorsCard();
     updateLiveScores();
-    renderSessionTable();
+    renderFileSyncStatus();
     updateSubmitEnabled();
   }
 
   /* ====================================================== COMBINE VIEW == */
   let combinedFiles = []; // { name, records: [...] }
-  let includeSession = true;
 
   function buildCombineView() {
     viewCombine.innerHTML = '';
@@ -806,18 +1044,6 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
     card.appendChild(zone);
 
-    const sessionToggle = el('label', { class: 'row small', style: 'cursor: pointer;' }, [
-      el('input', {
-        type: 'checkbox',
-        checked: includeSession ? 'checked' : false,
-        onchange: (e) => {
-          includeSession = e.target.checked;
-          renderCombineDerived();
-        },
-      }),
-      `Also include the ${sessionRecords.length} response(s) submitted in this browser`,
-    ]);
-    card.appendChild(sessionToggle);
     card.appendChild(el('div', { id: 'combine-load-errors' }));
     return card;
   }
@@ -851,7 +1077,6 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   function allCombinedRecords() {
     const byId = new Map();
     for (const f of combinedFiles) for (const r of f.records) byId.set(r.id || JSON.stringify(r), r);
-    if (includeSession) for (const r of sessionRecords) byId.set(r.id, r);
     return Array.from(byId.values());
   }
 
@@ -1207,6 +1432,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   renderDataSourceInfo();
   renderScoreView();
   renderCombineView();
+  void tryRestoreDirHandle();
 })();
 </script>
 </body>

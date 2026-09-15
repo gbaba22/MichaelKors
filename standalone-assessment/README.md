@@ -8,26 +8,58 @@ Michael Kors / Capri framework. No install, no server, no database — open
 
 1. **Open `index.html`** (double-click it, or drag it into a browser tab).
 2. **Score an Opportunity** — fill in the facilitator and business owner
-   details, pick an AI opportunity, and score all 10 factors on the 0/5/20/50/100
-   scale. Every option shows the rubric wording for that level. The live
-   score panel updates as you go.
-3. Click **Save & download this response**. Two files download automatically:
-   a `.json` (the source-of-truth record) and a `.csv` (opens directly in
-   Excel). The form clears for the next interview but keeps the facilitator's
-   name and email, since one sitting usually covers several interviews.
-4. Everything you submit in a browser session is also listed under **This
-   browser's session**, with a button to download it all as one CSV — handy
-   at the end of a day of interviews. This uses `localStorage`, so it's
-   private to that browser and doesn't survive clearing site data.
-5. To bring many people's responses together: open the **Combine Results**
-   tab and drop in any number of the `.json` files this tool has produced
-   (from this browser or emailed in from others). You'll see every response,
-   a per-opportunity summary (mean Impact/Feasibility/Overall across however
-   many people scored it), and an Impact-vs-Feasibility chart — plus buttons
-   to export both as CSV.
+   details, pick an AI opportunity, and score all 10 factors using the
+   plain-language labels shown for each level. Every option shows the
+   rubric wording for that level. The Estimated Score panel updates as you go.
+3. Click **Submit Assessment**.
+   - **In Chrome or Edge**, the first time you submit you'll be asked to
+     choose (or create) a folder. From then on every submission is saved
+     straight into two files in that folder — `ai_opportunity_assessments.json`
+     (the source-of-truth record) and `ai_opportunity_assessments.csv`
+     (opens directly in Excel) — with no further prompts. Each submission
+     appends a row; you always end up with exactly one growing json and one
+     growing csv per laptop, never a pile of per-response files. The "Saved
+     responses" card at the bottom of the form shows which folder you're
+     connected to and how many responses have been saved.
+   - **In Firefox, Safari, or if you cancel/decline the folder prompt**,
+     direct saving isn't available — each submission instead downloads its
+     own `.json` and `.csv` pair, exactly as before. The status card
+     explains this and lets you connect a folder at any time to switch to
+     direct saving for future submissions.
+   - The form clears for the next interview but keeps the facilitator's
+     name, since one sitting usually covers several interviews.
+4. To bring many people's responses together: open the **Combine Results**
+   tab and drop in the `.json` file(s) this tool has produced — either one
+   laptop's whole accumulated file, or a batch of older per-submission
+   files, or a mix of both (from this laptop or emailed in from others).
+   You'll see every response, a per-opportunity summary (mean Impact/
+   Feasibility/Overall across however many people scored it), and an
+   Impact-vs-Feasibility chart — plus buttons to export both as CSV.
 
 Nothing here ever calls out to a network. Files stay on the machine that
 generated them until someone explicitly downloads, emails, or uploads one.
+
+### Reconnecting after a browser restart
+
+Chrome and Edge remember which folder you connected, but for security they
+need you to re-confirm access after a full browser restart (reopening a
+single tab doesn't trigger this). When that happens, the status card shows
+a **Reconnect** button instead of silently resuming — click it to grant
+access again and pick up appending to the same file. Until you reconnect,
+submissions fall back to per-response downloads rather than blocking you.
+
+### Limitations of direct saving
+
+- **Chrome/Edge only.** This relies on the browser's File System Access
+  API, which Firefox and Safari don't implement. Those browsers (and any
+  browser where you decline the folder prompt) always use the per-response
+  download behavior described above — the tool works fully either way.
+- **One writer at a time.** If you have the same folder connected in two
+  tabs or two browser windows at once, the last one to save wins — this
+  isn't engineered around, so stick to one active tab per folder.
+- Cross-restart reconnection is a browser guarantee, not something this
+  tool can control; if in doubt, submit one response after reconnecting and
+  check the file on disk.
 
 ## Updating the framework
 
@@ -71,9 +103,10 @@ Overall     = (Impact × impactWeight + Feasibility × feasibilityWeight)
 
 Four feasibility factors are inverted (a high raw score is worse, so it's
 flipped before weighting): **Implementation Complexity, Risk Profile, CapEx
-Cost, Annual OpEx Cost**. Every inverted factor is labelled "higher = worse"
-in the UI. The other six factors are higher-is-better, including Data
-Readiness and Process Readiness.
+Cost, Annual OpEx Cost**. The other six factors are higher-is-better,
+including Data Readiness and Process Readiness. The form shows plain-language
+labels (tailored per factor) instead of raw scores — the underlying 0/5/20/
+50/100 scale is only used for the backend calculation.
 
 Dividing by the weight sum means the model stays on 0–100 even if the
 weights in a future workbook version don't add up to exactly 1.0.
@@ -100,10 +133,11 @@ scripts/
 
 ## Notes and limitations
 
-- **Session log is per-browser, not shared.** Two people scoring on two
-  laptops each get their own local session; combine their downloaded `.json`
-  files in the Combine Results tab (or hand them to whoever's aggregating)
-  to see everything together.
+- **Saved responses are per-laptop, not shared.** Two people scoring on two
+  laptops each get their own local json/csv (or their own per-submission
+  downloads on Firefox/Safari); combine everyone's `.json` files in the
+  Combine Results tab (or hand them to whoever's aggregating) to see
+  everything together.
 - **The Combine view only re-imports `.json`**, not `.csv` — the CSV is for
   opening directly in a spreadsheet, not for round-tripping through this
   tool.
@@ -112,6 +146,8 @@ scripts/
   while interviewing its business owner), so the opportunity picker is never
   filtered by team. The full team list is still captured on each
   opportunity's record for reference.
-- Every browser tested (current Chrome/Edge/Firefox/Safari) supports
-  everything this page uses — `Blob`, `URL.createObjectURL`, `FileReader`,
-  and `localStorage`. No build step, no bundler, no dependencies.
+- Direct-to-file saving uses the File System Access API (Chrome/Edge), with
+  IndexedDB to remember the connected folder between reloads. Every browser
+  tested (current Chrome/Edge/Firefox/Safari) still supports the fallback
+  path — `Blob`, `URL.createObjectURL`, and `FileReader` — so the tool works
+  everywhere either way. No build step, no bundler, no dependencies.
