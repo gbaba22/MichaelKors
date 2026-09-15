@@ -175,6 +175,10 @@ button.small { padding: 5px 10px; font-size: 0.8rem; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.comments-cell { white-space: normal; max-width: 320px; vertical-align: top; }
+td.comments-cell .comment-item { margin-bottom: 4px; }
+td.comments-cell .comment-item:last-child { margin-bottom: 0; }
+td.comments-cell .comment-factor { color: var(--ink); font-weight: 600; }
 th { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted); }
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { color: var(--ink); }
@@ -1224,10 +1228,8 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       el(
         'thead',
         {},
-        el(
-          'tr',
-          {},
-          columns.map((c) =>
+        el('tr', {}, [
+          ...columns.map((c) =>
             el(
               'th',
               {
@@ -1240,7 +1242,8 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
               c.label + (sortState.field === c.key ? (sortState.dir === 'asc' ? ' ↑' : ' ↓') : ''),
             ),
           ),
-        ),
+          el('th', {}, 'Factor Comments'),
+        ]),
       ),
     );
     const tbody = el('tbody');
@@ -1256,6 +1259,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
           el('td', { class: 'num' }, fmt(r.feasibilityScore)),
           el('td', { class: 'num', style: 'font-weight: 600;' }, fmt(r.overallScore)),
           el('td', { class: 'small muted' }, new Date(r.submittedAt).toLocaleDateString()),
+          el('td', { class: 'comments-cell small secondary-text' }, factorCommentsCell(r)),
         ]),
       );
     }
@@ -1263,6 +1267,17 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     const wrap = el('div', { class: 'table-wrap' });
     wrap.appendChild(table);
     card.appendChild(wrap);
+  }
+  /** Every factor with a non-empty comment on this response, in the
+   * framework's factor order - a compact stand-in for the CSV's ten
+   * separate "<Factor> Comments" columns. */
+  function factorCommentsCell(record) {
+    if (!record.comments) return '—';
+    const items = CONFIG.factors
+      .map((f) => ({ name: f.name, text: (record.comments[f.key] || '').trim() }))
+      .filter((c) => c.text);
+    if (items.length === 0) return '—';
+    return items.map((c) => el('div', { class: 'comment-item' }, [el('span', { class: 'comment-factor' }, c.name + ': '), c.text]));
   }
   function sortRecords(records, state) {
     const dir = state.dir === 'asc' ? 1 : -1;
