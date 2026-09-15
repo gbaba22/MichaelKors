@@ -138,9 +138,8 @@ button.small { padding: 5px 10px; font-size: 0.8rem; }
 .factor-block { padding: 16px 0; border-bottom: 1px solid var(--line); }
 .factor-block:last-child { border-bottom: none; }
 .factor-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.factor-head .name { font-weight: 600; }
-.factor-weight { font-size: 0.74rem; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; font-weight: 600; }
-.factor-subtitle, .factor-question { font-size: 0.82rem; color: var(--ink-muted); margin-top: 2px; }
+.factor-head .name { font-weight: 600; font-size: 1rem; }
+.factor-question { font-size: 0.82rem; color: var(--ink-muted); margin-top: 2px; }
 .scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .scale-option {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
@@ -231,7 +230,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T01:50:22Z",
+  "generatedAt": "2026-09-15T13:48:35Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -949,6 +948,34 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
 
   const SESSION_KEY = 'mk-ai-assessment-session-v1';
 
+  /**
+   * Friendly labels shown on the five score buttons, in place of the raw
+   * 0/5/20/50/100 values (scores stay internal - used only for the actual
+   * Impact/Feasibility/Overall calculation). Written per factor rather than
+   * one shared ladder: each one describes the MAGNITUDE of the thing that
+   * factor's question asks about, not a "good/bad" judgement - that's what
+   * keeps Implementation Complexity, Risk Profile, CapEx Cost and OpEx Cost
+   * honest, since for those four a high raw score is actually the *worst*
+   * outcome ("Severe" risk, not "Excellent" risk). Falls back to the raw
+   * score if a loaded config.json has factor keys this map doesn't know
+   * about (e.g. a custom framework loaded via "Data source").
+   */
+  const FACTOR_LABELS = {
+    financial_impact: ['No Impact', 'Minor', 'Moderate', 'Significant', 'Major'],
+    process_efficiency: ['No Gain', 'Slight Gain', 'Moderate Gain', 'Strong Gain', 'Major Gain'],
+    customer_experience: ['No Change', 'Minor', 'Noticeable', 'Strong', 'Exceptional'],
+    strategic_priority: ['Not Aligned', 'Future Priority', 'Indirect Fit', 'Direct Fit', 'Core Priority'],
+    data_readiness: ['Not Available', 'Limited', 'Partial', 'Mostly Ready', 'Fully Ready'],
+    process_readiness: ['Undefined', 'Informal', 'Emerging', 'Established', 'Optimized'],
+    implementation_complexity: ['Minimal', 'Low', 'Moderate', 'High', 'Very High'],
+    risk_profile: ['Minimal', 'Low', 'Moderate', 'High', 'Severe'],
+    capex_cost: ['Negligible', 'Low', 'Moderate', 'High', 'Very High'],
+    opex_cost: ['Negligible', 'Low', 'Moderate', 'High', 'Very High'],
+  };
+  function scoreLabel(factor, levelIndex, rawScore) {
+    return FACTOR_LABELS[factor.key]?.[levelIndex] ?? String(rawScore);
+  }
+
   /* ============================================================ helpers = */
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
@@ -1028,14 +1055,14 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
   }
   function buildCsv(records) {
     const header = [
-      'Submitted At', 'Facilitator Name', 'Facilitator Email',
-      'Business Owner Name', 'Business Owner Team', 'Interview Date',
+      'Submitted At', 'Facilitator Name',
+      'Full Name', 'Team / Business Function', 'Interview Date',
       'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams',
       ...CONFIG.factors.map((f) => f.name),
       'Impact Score', 'Feasibility Score', 'AI Opportunity Score',
     ];
     const rows = records.map((r) => [
-      r.submittedAt, r.facilitatorName, r.facilitatorEmail || '',
+      r.submittedAt, r.facilitatorName,
       r.businessOwnerName, r.businessOwnerTeam, r.interviewDate,
       r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '),
       ...CONFIG.factors.map((f) => (r.scores[f.key] != null ? r.scores[f.key] : '')),
@@ -1154,24 +1181,20 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     card.appendChild(el('h2', {}, 'Interview details'));
     const grid = el('div', { class: 'form-grid' });
 
+    // Facilitator defaults to the usual AI CoE facilitator; editable in case
+    // someone else is running a given interview.
     const facilitatorName = el('input', { type: 'text', id: 'f-facilitator-name', required: true, autocomplete: 'name' });
-    const facilitatorEmail = el('input', { type: 'email', id: 'f-facilitator-email', autocomplete: 'email' });
+    facilitatorName.value = 'Gaurav B';
     const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
     const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', required: true, list: 'team-options' });
     const teamList = el('datalist', { id: 'team-options' }, CONFIG.teams.map((t) => el('option', { value: t })));
-    const date = el('input', { type: 'date', id: 'f-date' });
-    date.value = new Date().toISOString().slice(0, 10);
 
-    grid.appendChild(el('label', { class: 'field' }, ['Facilitator (AI CoE) name', facilitatorName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Facilitator email (optional)', facilitatorEmail]));
-    grid.appendChild(el('label', { class: 'field' }, ['Business owner name', ownerName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Business owner team / function', ownerTeam, teamList]));
-    grid.appendChild(el('label', { class: 'field' }, ['Interview date', date]));
+    grid.appendChild(el('label', { class: 'field' }, ['Facilitator Name', facilitatorName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Full Name', ownerName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Team / Business Function', ownerTeam, teamList]));
 
     card.appendChild(grid);
-    [facilitatorName, facilitatorEmail, ownerName, ownerTeam, date].forEach((i) =>
-      i.addEventListener('input', updateSubmitEnabled),
-    );
+    [facilitatorName, ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateSubmitEnabled));
     return card;
   }
 
@@ -1233,25 +1256,18 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       card.appendChild(el('p', { class: 'empty' }, 'Choose an AI opportunity above to begin scoring its factors.'));
       return;
     }
-    card.appendChild(el('h2', {}, 'Impact factors'));
+    card.appendChild(el('h2', {}, 'Impact Scoring'));
     for (const f of CONFIG.factors.filter((f) => f.category === 'impact')) card.appendChild(renderFactorBlock(f));
-    card.appendChild(el('h2', { style: 'margin-top: 18px;' }, 'Feasibility factors'));
+    card.appendChild(el('h2', { style: 'margin-top: 18px;' }, 'Feasibility Scoring'));
     for (const f of CONFIG.factors.filter((f) => f.category === 'feasibility')) card.appendChild(renderFactorBlock(f));
   }
   function renderFactorBlock(factor) {
     const block = el('div', { class: 'factor-block', 'data-key': factor.key });
-    block.appendChild(
-      el('div', { class: 'factor-head' }, [
-        el('span', { class: 'name' }, factor.name),
-        el('span', { class: 'factor-weight' }, `${Math.round(factor.weight * 100)}%`),
-        factor.inverted ? el('span', { class: 'chip', title: 'A high score here counts against feasibility' }, 'higher = worse') : null,
-      ]),
-    );
-    if (factor.subtitle) block.appendChild(el('div', { class: 'factor-subtitle' }, factor.subtitle));
+    block.appendChild(el('div', { class: 'factor-head' }, [el('span', { class: 'name' }, factor.name)]));
     if (factor.question) block.appendChild(el('div', { class: 'factor-question' }, factor.question));
 
     const scale = el('div', { class: 'scale', role: 'radiogroup', 'aria-label': factor.name + ' score' });
-    for (const level of factor.levels) {
+    factor.levels.forEach((level, levelIndex) => {
       const btn = el(
         'button',
         {
@@ -1266,10 +1282,10 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
             updateSubmitEnabled();
           },
         },
-        [el('span', { class: 'score' }, String(level.score)), el('span', { class: 'desc' }, level.label)],
+        [el('span', { class: 'score' }, scoreLabel(factor, levelIndex, level.score)), el('span', { class: 'desc' }, level.label)],
       );
       scale.appendChild(btn);
-    }
+    });
     block.appendChild(scale);
     return block;
   }
@@ -1291,7 +1307,7 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
     card.innerHTML = '';
     card.appendChild(
       el('div', { class: 'card-header' }, [
-        el('h2', {}, 'Live score'),
+        el('h2', {}, 'Estimated Score'),
         el('span', { class: 'chip' }, `${answered} of ${CONFIG.factors.length} factors answered`),
       ]),
     );
@@ -1353,10 +1369,11 @@ details.data-source .data-source-body { padding: 0 16px 16px; }
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       submittedAt: new Date().toISOString(),
       facilitatorName: $('#f-facilitator-name').value.trim(),
-      facilitatorEmail: $('#f-facilitator-email').value.trim(),
       businessOwnerName: $('#f-owner-name').value.trim(),
       businessOwnerTeam: $('#f-owner-team').value.trim(),
-      interviewDate: $('#f-date').value,
+      // Always the submission date - there's no date field for the
+      // facilitator to fill in.
+      interviewDate: new Date().toISOString().slice(0, 10),
       opportunityId: currentOpportunity.id,
       opportunityName: currentOpportunity.name,
       businessArea: currentOpportunity.businessArea,
