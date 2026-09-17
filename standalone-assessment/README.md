@@ -36,7 +36,21 @@ Michael Kors / Capri framework. No install, no server, no database: open
      direct saving for future submissions.
    - The form clears for the next interview but keeps the facilitator's
      name, since one sitting usually covers several interviews.
-4. To bring many people's responses together: open the **Analyze Results**
+4. **Interview Guide**: reference questions for each of the 10 factors
+   (plus a short set of framing questions asked once, up front) to help a
+   facilitator gauge what score a factor deserves. Pick the AI opportunity
+   you're discussing, then type notes straight into the box under each
+   question as the conversation happens - nothing is required beyond the
+   same Stakeholders for Discovery details, and any question can be left
+   blank. Click **Save Interview Notes** to save the whole session. This
+   is entirely separate from AI Discovery: notes save to their own
+   `discovery_interview_notes.json`/`.csv` (in the same connected folder,
+   if you've connected one, but never mixed into
+   `ai_opportunity_assessments.json` or the Analyze Results data). The
+   question content lives in `INTERVIEW_QUESTIONS`/`FRAMING_QUESTIONS` in
+   `scripts/index_template.html` - it's editorial content the team
+   maintains directly, not sourced from the workbook.
+5. To bring many people's responses together: open the **Analyze Results**
    tab and drop in the `.json` file(s) this tool has produced: either one
    laptop's whole accumulated file, or a batch of older per-submission
    files, or a mix of both (from this laptop or emailed in from others).
@@ -157,6 +171,10 @@ scripts/
 - **The Analyze Results view only re-imports `.json`**, not `.csv`: the CSV
   is for opening directly in a spreadsheet, not for round-tripping through
   this tool.
+- **Interview Guide notes are not analyzed anywhere in this tool.** They're
+  captured and saved for the record (and for anyone reviewing the raw
+  `discovery_interview_notes.json`/`.csv`), but Analyze Results only reads
+  `ai_opportunity_assessments.json` - notes files aren't accepted there.
 - **`Facilitator`/`Business owner` fields, not a team filter.** This build
   assumes the CoE-interview flow (one facilitator scores any opportunity
   while interviewing its business owner), so the opportunity picker is never

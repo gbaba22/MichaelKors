@@ -155,6 +155,9 @@ button.link-button:hover:not(:disabled) { background: none; text-decoration: und
 .factor-question { font-size: 0.82rem; color: var(--ink-muted); margin-top: 2px; }
 .scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .factor-comment { display: block; width: 100%; margin-top: 8px; min-height: 40px; resize: vertical; font-size: 0.85rem; }
+.guide-question-item { display: block; margin-top: 14px; }
+.guide-question-item:first-of-type { margin-top: 10px; }
+.guide-question-text { display: block; font-size: 0.85rem; color: var(--ink-secondary); margin-bottom: 4px; }
 .scale-option {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
   padding: 9px 10px; min-height: 74px; border: 1px solid var(--line); border-radius: var(--radius-sm);
@@ -246,6 +249,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     <div class="spacer"></div>
     <nav class="tabs" aria-label="Sections">
       <button type="button" id="tab-score" aria-current="true">AI Discovery</button>
+      <button type="button" id="tab-guide" aria-current="false">Interview Guide</button>
       <button type="button" id="tab-combine" aria-current="false">Analyze Results</button>
     </nav>
   </header>
@@ -270,6 +274,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     </details>
 
     <div id="view-score"></div>
+    <div id="view-guide" hidden></div>
     <div id="view-combine" hidden></div>
   </div>
 
@@ -280,7 +285,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-15T18:57:31Z",
+  "generatedAt": "2026-09-17T14:48:52Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1020,6 +1025,101 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     return FACTOR_LABELS[factor.key]?.[levelIndex] ?? String(rawScore);
   }
 
+  /* ================================================ interview guide data =
+   * Reference questions a facilitator can ask during discovery to gauge
+   * which score band a factor belongs in. Not tied to the workbook - kept
+   * here since it's editorial content, not part of the scoring model.
+   */
+  const FRAMING_QUESTIONS = [
+    'What is the specific business problem this opportunity solves?',
+    'Which of the six business priorities does it most directly advance - brand desirability, product innovation, consumer acquisition/engagement/retention, store & digital experience, profitable revenue growth, or operational execution/productivity?',
+    'How would it grow revenue, improve margin, reduce cost or working capital, release productive capacity, or protect value?',
+    'Is the need common across Capri, or specific to Michael Kors or Jimmy Choo?',
+    'Is the timing aligned with current business priorities and execution capacity?',
+  ];
+  const INTERVIEW_QUESTIONS = {
+    financial_impact: [
+      'Is the impact primarily top-line (revenue, AUR, full-price mix) or bottom-line (cost avoidance, margin, working capital)?',
+      'Do you have a documented estimate, or is this a rough gut-feel number? Who produced it - Finance, the business owner, the AI team?',
+      'What’s the annual dollar range today, even roughly?',
+      'Is this a one-time benefit or does it recur/compound annually?',
+      'Does the estimate assume full-scale rollout or a limited pilot? How would the number change at scale?',
+      'What would have to be true for this estimate to hold?',
+      'Is the value shared across Capri or specific to one brand?',
+    ],
+    process_efficiency: [
+      'What process or task does this change, and who performs it today?',
+      'How much time does it currently take (per transaction, per day, per FTE)?',
+      'What’s the current error or rework rate, if known?',
+      'Is this reducing manual effort, eliminating a step, or just speeding it up?',
+      'Does this free capacity for higher-value work, or reduce cost directly?',
+      'How would we measure the "after" state?',
+      'Roughly what improvement would you expect - under 5%, 5-15%, 15-50%, or a step-change?',
+    ],
+    customer_experience: [
+      'Which customer journey does this touch - is it core (checkout, styling, loyalty) or peripheral?',
+      'Which business priority does it support - brand desirability, product relevance, consumer acquisition/retention, or elevating store/digital experience?',
+      'How would we know it worked - NPS, CLV, retention, purchase frequency, something else?',
+      'Is there a baseline metric today to compare against?',
+      'Does this affect all consumers or a specific segment (e.g. younger consumers, loyalty members)?',
+      'Is the change felt directly by the customer, or internal but indirectly improving service?',
+      'What’s the realistic expected movement, in NPS/CLV terms?',
+    ],
+    strategic_priority: [
+      'Which of the six business priorities does this most directly advance?',
+      'Is it explicitly named in this year’s strategic plan/roadmap, or adjacent/supporting work?',
+      'Who is the executive sponsor, and how visible is this to leadership?',
+      'If this didn’t happen this year, would a strategic commitment be at risk?',
+      'Is this Michael Kors-specific, Jimmy Choo-specific, or a shared Capri-wide capability?',
+      'Would you call this "required," "directly serving," or "indirectly supporting" a priority?',
+    ],
+    data_readiness: [
+      'What data would this need, and does it exist anywhere today?',
+      'Where does it live (system of record), and who owns it?',
+      'Is it structured/clean, or would it need significant prep?',
+      'Are there known gaps, quality issues, or missing history?',
+      'Is it available real-time/near-real-time, or only periodic batch?',
+      'Is there existing governance (access, quality monitoring), or would that need to be built?',
+      'Has this data been used successfully for a similar use case before?',
+    ],
+    process_readiness: [
+      'Is there a documented, named process today, or is it ad hoc?',
+      'Who owns it currently, and is that ownership clear and singular?',
+      'Is it followed consistently, or does it vary by person/store/region?',
+      'Is it currently measured in any way (SLAs, KPIs, dashboards)?',
+      'Would AI here require redesigning the process first, or does it fit how work already happens?',
+    ],
+    implementation_complexity: [
+      'Which systems would this integrate with (POS, ERP, CRM, e-commerce, etc.)?',
+      'Is this a configuration in an existing system, or new integration work?',
+      'How many teams - internal or vendor - need to be involved?',
+      'Are there dependencies on other in-flight projects?',
+      'Would this touch multiple systems at once, or stay contained to one?',
+      'Single-phase delivery, or multiple phases/years?',
+      'Has something similar been built before, or would this be novel?',
+    ],
+    risk_profile: [
+      'Does a human review the output before it reaches a customer or a decision is made, or does it act autonomously?',
+      'If this makes a mistake, who’s affected - internal only, employees, or customers directly?',
+      'Is the action reversible, or could impact be lasting?',
+      'Does this touch PII, financial transactions, or need Legal/Compliance/Brand sign-off?',
+      'What review or governance process would this go through before launch?',
+      'Is this customer-facing or purely internal/back-office?',
+    ],
+    capex_cost: [
+      'Would this need new software licenses, hardware, or infrastructure?',
+      'Can it be built on tools/platforms already licensed today?',
+      'Has a vendor or internal team given a cost estimate?',
+      'Is there a one-time build cost separate from ongoing running costs?',
+    ],
+    opex_cost: [
+      'What would it cost to run this ongoing - compute, licensing, API/usage fees, support?',
+      'Does cost scale with usage/volume, or is it fixed?',
+      'Would this need dedicated headcount or a vendor contract to operate?',
+      'Is this absorbed in an existing budget, or new incremental spend?',
+    ],
+  };
+
   /* ============================================================ helpers = */
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
@@ -1146,17 +1246,21 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
   /* ============================================================ tabs ==== */
   const tabScore = $('#tab-score');
+  const tabGuide = $('#tab-guide');
   const tabCombine = $('#tab-combine');
   const viewScore = $('#view-score');
+  const viewGuide = $('#view-guide');
   const viewCombine = $('#view-combine');
   tabScore.addEventListener('click', () => switchTab('score'));
+  tabGuide.addEventListener('click', () => switchTab('guide'));
   tabCombine.addEventListener('click', () => switchTab('combine'));
   function switchTab(which) {
-    const onScore = which === 'score';
-    viewScore.hidden = !onScore;
-    viewCombine.hidden = onScore;
-    tabScore.setAttribute('aria-current', String(onScore));
-    tabCombine.setAttribute('aria-current', String(!onScore));
+    viewScore.hidden = which !== 'score';
+    viewGuide.hidden = which !== 'guide';
+    viewCombine.hidden = which !== 'combine';
+    tabScore.setAttribute('aria-current', String(which === 'score'));
+    tabGuide.setAttribute('aria-current', String(which === 'guide'));
+    tabCombine.setAttribute('aria-current', String(which === 'combine'));
   }
 
   /* ==================================================== data source UI == */
@@ -1180,6 +1284,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       CONFIG = parsed;
       renderDataSourceInfo();
       renderScoreView();
+      renderGuideView();
       renderCombineView();
       $('#data-source-details').open = false;
     } catch (err) {
@@ -1192,6 +1297,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     CONFIG = DEFAULT_CONFIG;
     renderDataSourceInfo();
     renderScoreView();
+    renderGuideView();
     renderCombineView();
   });
 
@@ -1444,16 +1550,25 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   const FSA_SUPPORTED = typeof window.showDirectoryPicker === 'function';
   const DIRECT_SAVE_JSON_NAME = 'ai_opportunity_assessments.json';
   const DIRECT_SAVE_CSV_NAME = 'ai_opportunity_assessments.csv';
+  // Interview Guide notes are a separate data stream - same connected
+  // folder, but their own file pair, never mixed with assessment records.
+  const NOTES_JSON_NAME = 'discovery_interview_notes.json';
+  const NOTES_CSV_NAME = 'discovery_interview_notes.csv';
   const FSA_DB_NAME = 'mk-ai-assessment-fsa-v1';
   const FSA_STORE_NAME = 'handles';
   const FSA_HANDLE_KEY = 'directory';
 
   let dirHandle = null;
   // 'unsupported' | 'unconnected' | 'connected' | 'reconnect' | 'blocked' | 'declined'
+  // Shared connection state across both file streams (assessments + notes):
+  // one folder connection per laptop, so a write failure on either stream
+  // blocks both until a different folder is chosen.
   let fileSyncMode = FSA_SUPPORTED ? 'unconnected' : 'unsupported';
   let fileSyncCount = null;
   let fileSyncLastSaved = null;
   let fileSyncError = null;
+  let notesFileSyncCount = null;
+  let notesFileSyncLastSaved = null;
 
   function openFsaDb() {
     return new Promise((resolve, reject) => {
@@ -1525,16 +1640,19 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
    * and resaved in Excel is not something to trust as a data source).
    * Read-then-parse happens entirely before any createWritable() call,
    * since a writable stream truncates the file the moment it's opened.
+   * `jsonName`/`csvName` let this same routine serve more than one
+   * independent file pair in the same connected folder (assessments,
+   * interview notes, ...) without mixing their records together.
    */
-  async function writeRecordToDirectory(handle, record) {
-    const jsonHandle = await handle.getFileHandle(DIRECT_SAVE_JSON_NAME, { create: true });
+  async function writeRecordToDirectory(handle, record, jsonName, csvName, toCsv) {
+    const jsonHandle = await handle.getFileHandle(jsonName, { create: true });
     const existingText = await (await jsonHandle.getFile()).text();
     let existing;
     try {
       existing = parseExistingRecords(existingText);
     } catch (e) {
       throw new Error(
-        `"${DIRECT_SAVE_JSON_NAME}" in this folder doesn't look like a file this tool created - choose a different folder to avoid overwriting it`,
+        `"${jsonName}" in this folder doesn't look like a file this tool created - choose a different folder to avoid overwriting it`,
       );
     }
     const all = appendRecord(existing, record);
@@ -1543,26 +1661,32 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     await jsonWritable.write(JSON.stringify(all, null, 2));
     await jsonWritable.close();
 
-    const csvHandle = await handle.getFileHandle(DIRECT_SAVE_CSV_NAME, { create: true });
+    const csvHandle = await handle.getFileHandle(csvName, { create: true });
     const csvWritable = await csvHandle.createWritable();
-    await csvWritable.write('﻿' + buildCsv(all));
+    await csvWritable.write('﻿' + toCsv(all));
     await csvWritable.close();
 
     return all.length;
   }
 
-  /** Peeks the connected folder's current record count without writing -
-   * used right after connecting/reconnecting so the status line is accurate
-   * even before this session's first submission. */
-  async function refreshFileSyncCount() {
-    if (!dirHandle) return;
+  /** Peeks a file's current record count in the connected folder without
+   * writing to it - used right after connecting/reconnecting so the status
+   * line is accurate even before this session's first save. */
+  async function peekRecordCount(jsonName) {
+    if (!dirHandle) return null;
     try {
-      const jsonHandle = await dirHandle.getFileHandle(DIRECT_SAVE_JSON_NAME, { create: true });
+      const jsonHandle = await dirHandle.getFileHandle(jsonName, { create: true });
       const text = await (await jsonHandle.getFile()).text();
-      fileSyncCount = parseExistingRecords(text).length;
+      return parseExistingRecords(text).length;
     } catch (e) {
-      fileSyncCount = null;
+      return null;
     }
+  }
+  /** Refreshes both file streams' counts together, since they share one
+   * folder connection. */
+  async function refreshFileSyncCount() {
+    fileSyncCount = await peekRecordCount(DIRECT_SAVE_JSON_NAME);
+    notesFileSyncCount = await peekRecordCount(NOTES_JSON_NAME);
   }
 
   /** Opens the native folder picker - must be called as the first awaited
@@ -1590,6 +1714,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       }
     }
     renderFileSyncStatus();
+    renderNotesSyncStatus();
   }
 
   /** "Reconnect" button handler, for when permission needs reconfirming
@@ -1612,6 +1737,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       fileSyncMode = 'unconnected';
     }
     renderFileSyncStatus();
+    renderNotesSyncStatus();
   }
 
   /** Tries to silently resume a previously-connected folder at boot. Only
@@ -1638,6 +1764,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       /* leave fileSyncMode at its default ('unconnected') */
     }
     renderFileSyncStatus();
+    renderNotesSyncStatus();
   }
 
   function buildFileSyncCard() {
@@ -1713,6 +1840,82 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     card.appendChild(el('button', { class: 'small', onclick: changeDirectory }, 'Connect a folder now (optional)'));
   }
 
+  /** Same connect-a-folder mechanism as the assessments status card above,
+   * pointed at the notes file pair instead - shares the connection
+   * (fileSyncMode/dirHandle) but tracks its own record count. */
+  function buildNotesSyncCard() {
+    return el('div', { class: 'card', id: 'notessync-card' });
+  }
+  function renderNotesSyncStatus() {
+    const card = $('#notessync-card');
+    if (!card) return;
+    card.innerHTML = '';
+    card.appendChild(el('div', { class: 'card-header' }, [el('h2', {}, 'Saved notes')]));
+
+    if (fileSyncMode === 'unsupported') {
+      card.appendChild(
+        el(
+          'p',
+          { class: 'notice' },
+          'Direct file saving isn’t available in this browser. Each save downloads its own JSON and CSV file instead; Chrome or Edge can save directly into one running file.',
+        ),
+      );
+      return;
+    }
+
+    if (fileSyncMode === 'connected') {
+      const countText = notesFileSyncCount == null ? '' : ` · ${notesFileSyncCount} session${notesFileSyncCount === 1 ? '' : 's'} saved`;
+      const savedText = notesFileSyncLastSaved ? ` · last saved ${notesFileSyncLastSaved.toLocaleTimeString()}` : '';
+      card.appendChild(
+        el('p', { class: 'small secondary-text' }, [
+          'Saving directly to ',
+          el('strong', {}, NOTES_JSON_NAME),
+          ' in ',
+          el('strong', {}, (dirHandle && dirHandle.name) || 'the connected folder'),
+          countText + savedText,
+        ]),
+      );
+      card.appendChild(el('button', { class: 'small ghost', onclick: changeDirectory }, 'Change folder…'));
+      return;
+    }
+
+    if (fileSyncMode === 'reconnect') {
+      card.appendChild(
+        el(
+          'p',
+          { class: 'notice' },
+          `Reconnect to "${(dirHandle && dirHandle.name) || 'your save folder'}" to keep appending to your existing notes file. Until then, saves will download as separate files.`,
+        ),
+      );
+      card.appendChild(el('button', { class: 'small primary', onclick: reconnectDirectory }, 'Reconnect'));
+      return;
+    }
+
+    if (fileSyncMode === 'blocked') {
+      card.appendChild(el('p', { class: 'notice error' }, fileSyncError || 'Could not save to the connected folder.'));
+      card.appendChild(el('button', { class: 'small primary', onclick: changeDirectory }, 'Choose a different folder…'));
+      return;
+    }
+
+    if (fileSyncMode === 'declined') {
+      card.appendChild(
+        el('p', { class: 'small muted' }, 'Each save is downloading as its own file. Connect a folder to save everything into one file instead.'),
+      );
+      card.appendChild(el('button', { class: 'small', onclick: changeDirectory }, 'Connect a folder'));
+      return;
+    }
+
+    // 'unconnected'
+    card.appendChild(
+      el(
+        'p',
+        { class: 'small muted' },
+        'The first save will ask you to choose (or create) a folder; every session after that saves straight into one file there.',
+      ),
+    );
+    card.appendChild(el('button', { class: 'small', onclick: changeDirectory }, 'Connect a folder now (optional)'));
+  }
+
   async function handleSubmit() {
     const impact = round(categoryScore(CONFIG.factors, currentAnswers, 'impact'), 1);
     const feasibility = round(categoryScore(CONFIG.factors, currentAnswers, 'feasibility'), 1);
@@ -1767,7 +1970,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     let saved = false;
     if (dirHandle && fileSyncMode === 'connected') {
       try {
-        fileSyncCount = await writeRecordToDirectory(dirHandle, record);
+        fileSyncCount = await writeRecordToDirectory(dirHandle, record, DIRECT_SAVE_JSON_NAME, DIRECT_SAVE_CSV_NAME, buildCsv);
         fileSyncLastSaved = new Date();
         fileSyncError = null;
         saved = true;
@@ -1826,6 +2029,309 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     updateLiveScores();
     renderFileSyncStatus();
     updateSubmitEnabled();
+  }
+
+  /* ======================================================== GUIDE VIEW ==
+   * A facilitator's interview reference: open-ended notes captured per
+   * question, entirely separate from the AI Discovery scoring flow and
+   * its own independent state/record/file - nothing here feeds into
+   * currentAnswers, the assessment record, or Analyze Results.
+   */
+  let guideOpportunity = null;
+  let guideFramingAnswers = [];
+  let guideFactorAnswers = {};
+
+  function buildGuideView() {
+    viewGuide.innerHTML = '';
+    viewGuide.appendChild(
+      el('div', { class: 'stack' }, [
+        buildGuideMetaCard(),
+        buildGuideOpportunityCard(),
+        buildFramingCard(),
+        buildGuideFactorsCard(),
+        buildGuideSubmitRow(),
+        buildNotesSyncCard(),
+      ]),
+    );
+  }
+
+  function buildGuideMetaCard() {
+    const card = el('div', { class: 'card stack' });
+    card.appendChild(el('h2', {}, 'Stakeholders for Discovery'));
+    const grid = el('div', { class: 'form-grid' });
+
+    const facilitatorName = el('input', { type: 'text', id: 'g-facilitator-name', required: true, autocomplete: 'name' });
+    const ownerName = el('input', { type: 'text', id: 'g-owner-name', required: true });
+    const executiveSponsor = el('input', { type: 'text', id: 'g-executive-sponsor' });
+    const ownerTeam = el('input', { type: 'text', id: 'g-owner-team', required: true, list: 'team-options-guide' });
+
+    grid.appendChild(el('label', { class: 'field' }, ['Facilitator Name', facilitatorName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business Owner Name', ownerName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Executive Sponsor Name', executiveSponsor]));
+    grid.appendChild(
+      el('label', { class: 'field' }, ['Business Function', ownerTeam, el('datalist', { id: 'team-options-guide' }, CONFIG.teams.map((t) => el('option', { value: t })))]),
+    );
+
+    card.appendChild(grid);
+    [facilitatorName, ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateGuideSaveEnabled));
+    return card;
+  }
+
+  function buildGuideOpportunityCard() {
+    const card = el('div', { class: 'card stack' });
+    card.appendChild(el('h2', {}, 'AI Opportunity'));
+
+    const areas = new Map();
+    for (const o of CONFIG.opportunities) {
+      if (!areas.has(o.businessArea)) areas.set(o.businessArea, []);
+      areas.get(o.businessArea).push(o);
+    }
+    const select = el('select', { id: 'g-opportunity' }, [
+      el('option', { value: '' }, 'Choose an opportunity…'),
+      ...Array.from(areas.entries()).map(([area, opps]) =>
+        el(
+          'optgroup',
+          { label: area },
+          opps.map((o) => el('option', { value: String(o.id) }, o.name)),
+        ),
+      ),
+      el('option', { value: 'other' }, 'Other (not in this list)'),
+    ]);
+
+    const otherNameInput = el('input', { type: 'text', id: 'g-opportunity-other-name', placeholder: 'Name this AI opportunity' });
+    const otherNameField = el('label', { class: 'field', id: 'guide-opportunity-other-field', hidden: true }, [
+      'New opportunity name',
+      otherNameInput,
+    ]);
+    otherNameInput.addEventListener('input', () => {
+      if (guideOpportunity && guideOpportunity.id === 'other') {
+        guideOpportunity.name = otherNameInput.value.trim();
+      }
+      updateGuideSaveEnabled();
+    });
+
+    select.addEventListener('change', () => {
+      if (select.value === 'other') {
+        guideOpportunity = { id: 'other', name: otherNameInput.value.trim(), businessArea: 'Other', businessGoal: '', relevantTeams: [] };
+        otherNameField.hidden = false;
+      } else {
+        const id = Number(select.value);
+        guideOpportunity = CONFIG.opportunities.find((o) => o.id === id) || null;
+        otherNameField.hidden = true;
+        otherNameInput.value = '';
+      }
+      guideFramingAnswers = [];
+      guideFactorAnswers = {};
+      renderFramingCard();
+      renderGuideFactorsCard();
+      updateGuideSaveEnabled();
+    });
+
+    card.appendChild(el('label', { class: 'field' }, ['Select an AI opportunity to discuss', select]));
+    card.appendChild(otherNameField);
+    return card;
+  }
+
+  function buildFramingCard() {
+    return el('div', { class: 'card', id: 'framing-card' });
+  }
+  function renderFramingCard() {
+    const card = $('#framing-card');
+    if (!card) return;
+    card.innerHTML = '';
+    card.appendChild(el('h2', {}, 'Framing Questions'));
+    card.appendChild(
+      el('p', { class: 'small muted', style: 'margin-top: 2px;' }, 'Ask these once, before scoring any factor, to set context for the interview.'),
+    );
+    FRAMING_QUESTIONS.forEach((question, i) => {
+      const textarea = el('textarea', { class: 'factor-comment', rows: 2, placeholder: 'Notes' });
+      textarea.value = guideFramingAnswers[i] || '';
+      textarea.addEventListener('input', () => {
+        guideFramingAnswers[i] = textarea.value;
+      });
+      card.appendChild(
+        el('label', { class: 'guide-question-item' }, [el('span', { class: 'guide-question-text' }, `${i + 1}. ${question}`), textarea]),
+      );
+    });
+  }
+
+  function buildGuideFactorsCard() {
+    return el('div', { class: 'card', id: 'guide-factors-card' });
+  }
+  function renderGuideFactorsCard() {
+    const card = $('#guide-factors-card');
+    if (!card) return;
+    card.innerHTML = '';
+    if (!guideOpportunity) {
+      card.appendChild(el('p', { class: 'empty' }, 'Choose an AI opportunity above to see its interview questions.'));
+      return;
+    }
+    card.appendChild(el('h2', {}, 'Impact Scoring'));
+    for (const f of CONFIG.factors.filter((f) => f.category === 'impact')) card.appendChild(renderGuideFactorBlock(f));
+    card.appendChild(el('h2', { style: 'margin-top: 18px;' }, 'Feasibility Scoring'));
+    for (const f of CONFIG.factors.filter((f) => f.category === 'feasibility')) card.appendChild(renderGuideFactorBlock(f));
+  }
+  function renderGuideFactorBlock(factor) {
+    const block = el('div', { class: 'factor-block', 'data-key': factor.key });
+    block.appendChild(el('div', { class: 'factor-head' }, [el('span', { class: 'name' }, factor.name)]));
+    if (factor.question) block.appendChild(el('div', { class: 'factor-question' }, factor.question));
+
+    if (!guideFactorAnswers[factor.key]) guideFactorAnswers[factor.key] = [];
+    const answers = guideFactorAnswers[factor.key];
+    const questions = INTERVIEW_QUESTIONS[factor.key] || [];
+    questions.forEach((question, i) => {
+      const textarea = el('textarea', { class: 'factor-comment', rows: 2, placeholder: 'Notes' });
+      textarea.value = answers[i] || '';
+      textarea.addEventListener('input', () => {
+        answers[i] = textarea.value;
+      });
+      block.appendChild(
+        el('label', { class: 'guide-question-item' }, [el('span', { class: 'guide-question-text' }, `${i + 1}. ${question}`), textarea]),
+      );
+    });
+    return block;
+  }
+
+  function buildGuideSubmitRow() {
+    const row = el('div', { class: 'row' });
+    const saveBtn = el('button', { class: 'primary', id: 'guide-save-btn', disabled: true, onclick: handleSaveNotes }, 'Save Interview Notes');
+    const resetBtn = el('button', { class: 'ghost', onclick: resetGuideFields }, 'Clear this session’s notes');
+    row.appendChild(saveBtn);
+    row.appendChild(resetBtn);
+    row.appendChild(el('div', { id: 'guide-save-feedback', class: 'small' }));
+    return row;
+  }
+
+  function resetGuideFields() {
+    guideFramingAnswers = [];
+    guideFactorAnswers = {};
+    renderFramingCard();
+    renderGuideFactorsCard();
+    updateGuideSaveEnabled();
+  }
+
+  function updateGuideSaveEnabled() {
+    const btn = $('#guide-save-btn');
+    if (!btn) return;
+    const facilitatorName = $('#g-facilitator-name').value.trim();
+    const ownerName = $('#g-owner-name').value.trim();
+    const ownerTeam = $('#g-owner-team').value.trim();
+    const opportunityReady = guideOpportunity && (guideOpportunity.id !== 'other' || guideOpportunity.name);
+    btn.disabled = !(facilitatorName && ownerName && ownerTeam && opportunityReady);
+  }
+
+  /** Saves via the same connect-a-folder mechanism as handleSubmit, but to
+   * the independent notes file pair - never mixed into the assessment
+   * record or its CSV. Every field is optional except the identifying
+   * stakeholder/opportunity fields: unlike scoring, a facilitator won't
+   * always get an answer to every probe question in a live interview. */
+  async function handleSaveNotes() {
+    const isOtherOpportunity = guideOpportunity.id === 'other';
+    const opportunityName = isOtherOpportunity ? $('#g-opportunity-other-name').value.trim() : guideOpportunity.name;
+    const opportunityId = isOtherOpportunity ? `other-${slugify(opportunityName)}` : guideOpportunity.id;
+
+    const record = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      submittedAt: new Date().toISOString(),
+      facilitatorName: $('#g-facilitator-name').value.trim(),
+      businessOwnerName: $('#g-owner-name').value.trim(),
+      executiveSponsorName: $('#g-executive-sponsor').value.trim(),
+      businessOwnerTeam: $('#g-owner-team').value.trim(),
+      opportunityId: opportunityId,
+      opportunityName: opportunityName,
+      businessArea: guideOpportunity.businessArea,
+      framingAnswers: FRAMING_QUESTIONS.map((question, i) => ({ question, answer: guideFramingAnswers[i] || '' })),
+      factorAnswers: CONFIG.factors.map((f) => ({
+        factorKey: f.key,
+        factorName: f.name,
+        qa: (INTERVIEW_QUESTIONS[f.key] || []).map((question, i) => ({ question, answer: (guideFactorAnswers[f.key] || [])[i] || '' })),
+      })),
+      frameworkVersion: CONFIG.generatedFrom,
+    };
+
+    $('#guide-save-btn').disabled = true;
+
+    if (FSA_SUPPORTED && !dirHandle && fileSyncMode === 'unconnected') {
+      try {
+        await connectDirectory();
+      } catch (e) {
+        fileSyncMode = 'declined';
+      }
+    }
+
+    let saved = false;
+    if (dirHandle && fileSyncMode === 'connected') {
+      try {
+        notesFileSyncCount = await writeRecordToDirectory(dirHandle, record, NOTES_JSON_NAME, NOTES_CSV_NAME, buildNotesCsv);
+        notesFileSyncLastSaved = new Date();
+        fileSyncError = null;
+        saved = true;
+      } catch (e) {
+        fileSyncError = e && e.message ? e.message : 'Could not save to the connected file.';
+        fileSyncMode = 'blocked';
+      }
+    }
+
+    const base = `${filenameStamp()}-${sanitizeFilenamePart(record.businessOwnerTeam)}-${sanitizeFilenamePart(opportunityName)}-notes`;
+    if (!saved) {
+      downloadJson(record, base + '.json');
+      downloadCsv(buildNotesCsv([record]), base + '.csv');
+    } else {
+      downloadJson(record, base + '.json');
+    }
+
+    renderFileSyncStatus();
+    renderNotesSyncStatus();
+
+    $('#guide-save-feedback').innerHTML = '';
+    const noticeIsError = !saved && !!fileSyncError && fileSyncMode === 'blocked';
+    const noticeText = saved
+      ? `Saved notes for "${opportunityName}" to ${NOTES_JSON_NAME} and downloaded a copy as JSON.`
+      : noticeIsError
+        ? `Couldn’t save to the connected file (${fileSyncError}); downloaded notes for "${opportunityName}" as a separate file instead.`
+        : `Saved notes for "${opportunityName}": JSON and CSV downloaded.`;
+    $('#guide-save-feedback').appendChild(el('span', { class: `notice ${noticeIsError ? 'error' : 'success'}` }, noticeText));
+
+    // Move on to the next opportunity; keep facilitator details for the next interview.
+    guideOpportunity = null;
+    guideFramingAnswers = [];
+    guideFactorAnswers = {};
+    $('#g-opportunity').value = '';
+    $('#g-owner-name').value = '';
+    $('#g-executive-sponsor').value = '';
+    $('#g-owner-team').value = '';
+    $('#g-opportunity-other-name').value = '';
+    $('#guide-opportunity-other-field').hidden = true;
+    renderFramingCard();
+    renderGuideFactorsCard();
+    updateGuideSaveEnabled();
+  }
+
+  /** Context columns + one column per framing question + one consolidated
+   * Q&A column per factor (not one column per individual question - up to
+   * 70 of those would make the CSV unusable). */
+  function buildNotesCsv(records) {
+    const header = [
+      'Submitted At', 'Facilitator Name', 'Business Owner Name', 'Executive Sponsor Name', 'Business Function',
+      'AI Opportunity', 'Business Area',
+      ...FRAMING_QUESTIONS,
+      ...CONFIG.factors.map((f) => f.name),
+    ];
+    const rows = records.map((r) => [
+      r.submittedAt, r.facilitatorName, r.businessOwnerName, r.executiveSponsorName, r.businessOwnerTeam,
+      r.opportunityName, r.businessArea,
+      ...(r.framingAnswers || []).map((qa) => qa.answer || ''),
+      ...(r.factorAnswers || []).map((fa) => fa.qa.map((qa) => `Q: ${qa.question}\nA: ${qa.answer || '(no answer)'}`).join('\n\n')),
+    ]);
+    return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n');
+  }
+
+  function renderGuideView() {
+    buildGuideView();
+    renderFramingCard();
+    renderGuideFactorsCard();
+    renderNotesSyncStatus();
+    updateGuideSaveEnabled();
   }
 
   /* ====================================================== COMBINE VIEW == */
@@ -2360,6 +2866,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   /* =============================================================== boot = */
   renderDataSourceInfo();
   renderScoreView();
+  renderGuideView();
   renderCombineView();
   void tryRestoreDirHandle();
 })();
