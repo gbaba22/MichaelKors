@@ -295,7 +295,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-18T21:20:26Z",
+  "generatedAt": "2026-09-18T23:49:25Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1043,92 +1043,77 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
   /* ================================================ interview guide data =
    * Reference questions a facilitator can ask during discovery to gauge
-   * which score band a factor belongs in. Not tied to the workbook - kept
-   * here since it's editorial content, not part of the scoring model.
+   * which score band a factor belongs in. Sourced from the "Discovery
+   * Questionnaire" section of the Capri Holdings Opportunity Discovery
+   * Brief (one section per factor) - not tied to the workbook, kept here
+   * since it's editorial content, not part of the scoring model. The
+   * brief's "General" questions (business owner/sponsor, impacted
+   * functions) aren't listed per-factor since they're already captured as
+   * their own Stakeholders for Discovery fields.
    */
   const INTERVIEW_QUESTIONS = {
     financial_impact: [
-      // Framing questions, asked once up front to set context for the
-      // whole interview - grouped here rather than under their own
-      // section since Financial Impact is the first factor discussed.
-      'What is the specific business problem this opportunity solves?',
       'Which of the six business priorities does it most directly advance - brand desirability, product innovation, consumer acquisition/engagement/retention, store & digital experience, profitable revenue growth, or operational execution/productivity?',
       'How would it grow revenue, improve margin, reduce cost or working capital, release productive capacity, or protect value?',
-      'Is the need common across Capri, or specific to Michael Kors or Jimmy Choo?',
-      'Is the timing aligned with current business priorities and execution capacity?',
-      // Financial Impact-specific questions.
-      'Is the impact primarily top-line (revenue, AUR, full-price mix) or bottom-line (cost avoidance, margin, working capital)?',
-      'Do you have a documented estimate, or is this a rough gut-feel number? Who produced it - Finance, the business owner, the AI team?',
-      'What’s the annual dollar range today, even roughly?',
-      'Is this a one-time benefit or does it recur/compound annually?',
-      'Does the estimate assume full-scale rollout or a limited pilot? How would the number change at scale?',
-      'What would have to be true for this estimate to hold?',
-      'Is the value shared across Capri or specific to one brand?',
+      'Is this a one-time benefit or recurring?',
+      'Is the need common across both Capri brands?',
+      'Does the estimate assume full-scale rollout or a limited pilot?',
+      'How would the number change at scale?',
     ],
     process_efficiency: [
-      'What process or task does this change, and who performs it today?',
-      'How much time does it currently take (per transaction, per day, per FTE)?',
+      'What process or task does this change?',
+      'How much time does it currently take to do the process or task?',
       'What’s the current error or rework rate, if known?',
       'Is this reducing manual effort, eliminating a step, or just speeding it up?',
       'Does this free capacity for higher-value work, or reduce cost directly?',
-      'How would we measure the "after" state?',
-      'Roughly what improvement would you expect - under 5%, 5-15%, 15-50%, or a step-change?',
     ],
     customer_experience: [
-      'Which customer journey does this touch - is it core (checkout, styling, loyalty) or peripheral?',
-      'Which business priority does it support - brand desirability, product relevance, consumer acquisition/retention, or elevating store/digital experience?',
+      'Which customer journey does this touch - core or peripheral?',
+      'Does this affect all users or a specific segment?',
+      'Which consumer priority does it support - brand desirability, product relevance, consumer acquisition/retention, or elevating store/digital experience?',
       'How would we know it worked - NPS, CLV, retention, purchase frequency, something else?',
       'Is there a baseline metric today to compare against?',
-      'Does this affect all consumers or a specific segment (e.g. younger consumers, loyalty members)?',
-      'Is the change felt directly by the customer, or internal but indirectly improving service?',
-      'What’s the realistic expected movement, in NPS/CLV terms?',
     ],
     strategic_priority: [
-      'Which of the six business priorities does this most directly advance?',
+      'Which of the business priorities does this most directly advance?',
       'Is it explicitly named in this year’s strategic plan/roadmap, or adjacent/supporting work?',
-      'Who is the executive sponsor, and how visible is this to leadership?',
       'If this didn’t happen this year, would a strategic commitment be at risk?',
       'Is this Michael Kors-specific, Jimmy Choo-specific, or a shared Capri-wide capability?',
-      'Would you call this "required," "directly serving," or "indirectly supporting" a priority?',
     ],
     data_readiness: [
       'What data would this need, and does it exist anywhere today?',
-      'Where does it live (system of record), and who owns it?',
+      'If yes, where does it live (system of record)?',
       'Is it structured/clean, or would it need significant prep?',
       'Are there known gaps, quality issues, or missing history?',
       'Is it available real-time/near-real-time, or only periodic batch?',
       'Is there existing governance (access, quality monitoring), or would that need to be built?',
-      'Has this data been used successfully for a similar use case before?',
     ],
     process_readiness: [
       'Is there a documented, named process today, or is it ad hoc?',
       'Who owns it currently, and is that ownership clear and singular?',
       'Is it followed consistently, or does it vary by person/store/region?',
-      'Is it currently measured in any way (SLAs, KPIs, dashboards)?',
       'Would AI here require redesigning the process first, or does it fit how work already happens?',
     ],
     implementation_complexity: [
       'Which systems would this integrate with (POS, ERP, CRM, e-commerce, etc.)?',
       'Is this a configuration in an existing system, or new integration work?',
+      'Would this touch multiple systems at once, or stay contained to one?',
       'How many teams - internal or vendor - need to be involved?',
       'Are there dependencies on other in-flight projects?',
-      'Would this touch multiple systems at once, or stay contained to one?',
       'Single-phase delivery, or multiple phases/years?',
       'Has something similar been built before, or would this be novel?',
     ],
     risk_profile: [
       'Does a human review the output before it reaches a customer or a decision is made, or does it act autonomously?',
-      'If this makes a mistake, who’s affected - internal only, employees, or customers directly?',
+      'If this makes a mistake, who’s affected - employees, customers, or both?',
+      'Is this customer-facing or purely internal/back-office?',
       'Is the action reversible, or could impact be lasting?',
       'Does this touch PII, financial transactions, or need Legal/Compliance/Brand sign-off?',
       'What review or governance process would this go through before launch?',
-      'Is this customer-facing or purely internal/back-office?',
     ],
     capex_cost: [
       'Would this need new software licenses, hardware, or infrastructure?',
       'Can it be built on tools/platforms already licensed today?',
-      'Has a vendor or internal team given a cost estimate?',
-      'Is there a one-time build cost separate from ongoing running costs?',
     ],
     opex_cost: [
       'What would it cost to run this ongoing - compute, licensing, API/usage fees, support?',
