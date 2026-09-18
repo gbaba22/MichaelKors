@@ -129,7 +129,9 @@ button.ghost { border-color: transparent; background: transparent; color: var(--
 button.small { padding: 5px 10px; font-size: 0.8rem; }
 button.link-button { border: none; background: none; padding: 0; font-size: 0.85rem; color: var(--accent); }
 button.link-button:hover:not(:disabled) { background: none; text-decoration: underline; }
-.form-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+.form-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form-grid textarea { min-height: 60px; resize: vertical; }
+select[multiple] { height: auto; }
 
 /* chips */
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: var(--surface-sunken); border: 1px solid var(--line); font-size: 0.76rem; color: var(--ink-secondary); white-space: nowrap; }
@@ -247,6 +249,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   .scale-option { min-height: 0; flex-direction: row; align-items: baseline; gap: 8px; }
   .container { padding: 18px 14px 64px; }
   .topbar { padding: 10px 14px; }
+  .form-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -326,6 +329,12 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   function scoreLabel(factor, levelIndex, rawScore) {
     return FACTOR_LABELS[factor.key]?.[levelIndex] ?? String(rawScore);
   }
+
+  /** Editorial notes appended to a factor's subtitle (after its workbook
+   * question), for scoping guidance that isn't part of the rubric itself. */
+  const FACTOR_SUBTITLE_NOTES = {
+    financial_impact: 'Only estimating hard impact',
+  };
 
   /* ================================================ interview guide data =
    * Reference questions a facilitator can ask during discovery to gauge
@@ -516,16 +525,18 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   function buildCsv(records) {
     const header = [
       'Submitted At', 'Facilitator Name',
-      'Business Owner Name', 'Executive Sponsor Name', 'Business Function', 'Interview Date',
-      'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams',
+      'Business Owner Name', 'Opportunity Owner Name', 'Executive Sponsor Name', 'Other Stakeholders',
+      'Business Function', 'Impacted Business Functions', 'Interview Date',
+      'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams', 'Description', 'Out of Scope',
       ...CONFIG.factors.map((f) => f.name),
       ...CONFIG.factors.map((f) => `${f.name} Comments`),
       'Impact Score', 'Feasibility Score', 'AI Opportunity Score',
     ];
     const rows = records.map((r) => [
       r.submittedAt, r.facilitatorName,
-      r.businessOwnerName, r.executiveSponsorName, r.businessOwnerTeam, r.interviewDate,
-      r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '),
+      r.businessOwnerName, r.opportunityOwnerName, r.executiveSponsorName, r.otherStakeholders,
+      r.businessOwnerTeam, (r.impactedBusinessFunctions || []).join('; '), r.interviewDate,
+      r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '), r.description, r.outOfScope,
       ...CONFIG.factors.map((f) => (r.scores[f.key] != null ? r.scores[f.key] : '')),
       ...CONFIG.factors.map((f) => (r.comments && r.comments[f.key]) || ''),
       r.impactScore, r.feasibilityScore, r.overallScore,
@@ -623,15 +634,28 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const grid = el('div', { class: 'form-grid' });
 
     const facilitatorName = el('input', { type: 'text', id: 'f-facilitator-name', required: true, autocomplete: 'name' });
-    const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
-    const executiveSponsor = el('input', { type: 'text', id: 'f-executive-sponsor' });
     const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', required: true, list: 'team-options' });
     const teamList = el('datalist', { id: 'team-options' }, CONFIG.teams.map((t) => el('option', { value: t })));
+    const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
+    const opportunityOwnerName = el('input', { type: 'text', id: 'f-opportunity-owner' });
+    const executiveSponsor = el('input', { type: 'text', id: 'f-executive-sponsor' });
+    const impactedFunctions = el(
+      'select',
+      { id: 'f-impacted-functions', multiple: true, size: 4 },
+      CONFIG.teams.map((t) => el('option', { value: t }, t)),
+    );
+    const otherStakeholders = el('input', { type: 'text', id: 'f-other-stakeholders', placeholder: 'Names, comma-separated' });
 
+    // Paired two-per-row: Facilitator+Business Function, Business Owner+
+    // Opportunity Owner (kept adjacent), Executive Sponsor+Impacted
+    // Functions, Other Stakeholders alone on its own row.
     grid.appendChild(el('label', { class: 'field' }, ['Facilitator Name', facilitatorName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Business Owner Name', ownerName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Executive Sponsor Name', executiveSponsor]));
     grid.appendChild(el('label', { class: 'field' }, ['Business Function', ownerTeam, teamList]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business Owner Name', ownerName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Opportunity Owner Name', opportunityOwnerName]));
+    grid.appendChild(el('label', { class: 'field' }, ['Executive Sponsor Name', executiveSponsor]));
+    grid.appendChild(el('label', { class: 'field' }, ['Impacted Business Functions', impactedFunctions]));
+    grid.appendChild(el('label', { class: 'field' }, ['Other Stakeholders', otherStakeholders]));
 
     card.appendChild(grid);
     [facilitatorName, ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateSubmitEnabled));
@@ -640,7 +664,17 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
   function buildOpportunityCard() {
     const card = el('div', { class: 'card stack' });
-    card.appendChild(el('h2', {}, 'AI Opportunity'));
+    const loadInput = el('input', { type: 'file', accept: 'application/json', id: 'load-record-file-input', style: 'display:none;' });
+    loadInput.addEventListener('change', (e) => handleLoadRecordFile(e.target.files[0]));
+    card.appendChild(
+      el('div', { class: 'card-header' }, [
+        el('h2', {}, 'AI Opportunity'),
+        el('div', { class: 'spacer' }),
+        el('button', { type: 'button', class: 'small ghost', onclick: () => loadInput.click() }, 'Load previous response…'),
+        loadInput,
+      ]),
+    );
+    card.appendChild(el('div', { id: 'load-record-picker' }));
 
     const areas = new Map();
     for (const o of CONFIG.opportunities) {
@@ -683,6 +717,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       }
       currentAnswers = {};
       currentComments = {};
+      $('#f-description').value = '';
+      $('#f-out-of-scope').value = '';
       renderOpportunityContext();
       renderFactorsCard();
       updateLiveScores();
@@ -692,6 +728,18 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     card.appendChild(el('label', { class: 'field' }, ['Select an AI opportunity to score', select]));
     card.appendChild(otherNameField);
     card.appendChild(el('div', { id: 'opportunity-context' }));
+
+    const descriptionInput = el('textarea', { id: 'f-description', rows: 2 });
+    const outOfScopeInput = el('textarea', { id: 'f-out-of-scope', rows: 2 });
+    card.appendChild(
+      el('details', { class: 'data-source', id: 'opportunity-details-toggle' }, [
+        el('summary', {}, 'Description & Out of Scope (optional)'),
+        el('div', { class: 'data-source-body form-grid', style: 'padding-top: 4px;' }, [
+          el('label', { class: 'field' }, ['Description', descriptionInput]),
+          el('label', { class: 'field' }, ['Out of Scope', outOfScopeInput]),
+        ]),
+      ]),
+    );
     return card;
   }
 
@@ -706,6 +754,103 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
         ...currentOpportunity.relevantTeams.map((t) => el('span', { class: 'chip' }, t)),
       ]),
     );
+  }
+
+  /** Loads a previously saved response's .json (a single response, or an
+   * array such as the accumulated file) into the form so it can be
+   * reviewed or continued. Multiple matches prompt the facilitator to pick
+   * which one, rather than guessing. */
+  async function handleLoadRecordFile(file) {
+    if (!file) return;
+    const pickerBox = $('#load-record-picker');
+    pickerBox.innerHTML = '';
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const records = Array.isArray(parsed) ? parsed : [parsed];
+      const valid = records.filter((r) => r && r.opportunityId != null && r.scores);
+      if (valid.length === 0) throw new Error('No recognisable response records found in that file.');
+      if (valid.length === 1) {
+        loadRecordIntoForm(valid[0]);
+      } else {
+        pickerBox.appendChild(el('p', { class: 'small secondary-text' }, `${valid.length} responses found - choose one to load:`));
+        const list = el('div', { class: 'stack', style: 'gap: 4px;' });
+        valid
+          .slice()
+          .reverse()
+          .forEach((r) => {
+            const when = r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '';
+            list.appendChild(
+              el(
+                'button',
+                {
+                  type: 'button',
+                  class: 'small ghost',
+                  style: 'justify-content: flex-start; text-align: left;',
+                  onclick: () => {
+                    loadRecordIntoForm(r);
+                    pickerBox.innerHTML = '';
+                  },
+                },
+                `${r.opportunityName || 'Untitled'} — ${r.businessOwnerName || 'unknown owner'}${when ? ` (${when})` : ''}`,
+              ),
+            );
+          });
+        pickerBox.appendChild(list);
+      }
+    } catch (err) {
+      pickerBox.appendChild(el('div', { class: 'notice error' }, 'Could not load that file: ' + err.message));
+    } finally {
+      $('#load-record-file-input').value = '';
+    }
+  }
+
+  function loadRecordIntoForm(record) {
+    $('#f-facilitator-name').value = record.facilitatorName || '';
+    $('#f-owner-name').value = record.businessOwnerName || '';
+    $('#f-opportunity-owner').value = record.opportunityOwnerName || '';
+    $('#f-executive-sponsor').value = record.executiveSponsorName || '';
+    $('#f-owner-team').value = record.businessOwnerTeam || '';
+    $('#f-other-stakeholders').value = record.otherStakeholders || '';
+    const impactedSet = new Set(record.impactedBusinessFunctions || []);
+    $$('#f-impacted-functions option').forEach((opt) => {
+      opt.selected = impactedSet.has(opt.value);
+    });
+
+    const select = $('#f-opportunity');
+    const catalogMatch =
+      record.opportunityId != null
+        ? CONFIG.opportunities.find((o) => o.id === record.opportunityId || o.name === record.opportunityName)
+        : null;
+    if (catalogMatch) {
+      select.value = String(catalogMatch.id);
+      currentOpportunity = catalogMatch;
+      $('#opportunity-other-field').hidden = true;
+      $('#f-opportunity-other-name').value = '';
+    } else {
+      select.value = 'other';
+      currentOpportunity = {
+        id: 'other',
+        name: record.opportunityName || '',
+        businessArea: record.businessArea || 'Other',
+        businessGoal: record.businessGoal || '',
+        relevantTeams: record.relevantTeams || [],
+      };
+      $('#opportunity-other-field').hidden = false;
+      $('#f-opportunity-other-name').value = record.opportunityName || '';
+    }
+
+    $('#f-description').value = record.description || '';
+    $('#f-out-of-scope').value = record.outOfScope || '';
+    $('#opportunity-details-toggle').open = !!(record.description || record.outOfScope);
+
+    currentAnswers = Object.assign({}, record.scores || {});
+    currentComments = Object.assign({}, record.comments || {});
+
+    renderOpportunityContext();
+    renderFactorsCard();
+    updateLiveScores();
+    updateSubmitEnabled();
   }
 
   function buildFactorsCard() {
@@ -727,7 +872,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   function renderFactorBlock(factor) {
     const block = el('div', { class: 'factor-block', 'data-key': factor.key });
     block.appendChild(el('div', { class: 'factor-head' }, [el('span', { class: 'name' }, factor.name)]));
-    if (factor.question) block.appendChild(el('div', { class: 'factor-question' }, factor.question));
+    const subtitleParts = [factor.question, FACTOR_SUBTITLE_NOTES[factor.key]].filter(Boolean);
+    if (subtitleParts.length) block.appendChild(el('div', { class: 'factor-question' }, subtitleParts.join(' — ')));
 
     const scale = el('div', { class: 'scale', role: 'radiogroup', 'aria-label': factor.name + ' score' });
     factor.levels.forEach((level, levelIndex) => {
@@ -736,7 +882,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
         {
           type: 'button',
           class: 'scale-option',
-          'aria-pressed': 'false',
+          'aria-pressed': currentAnswers[factor.key] === level.score ? 'true' : 'false',
           onclick: () => {
             currentAnswers[factor.key] = level.score;
             $$('.scale-option', scale).forEach((b) => b.setAttribute('aria-pressed', 'false'));
@@ -1147,8 +1293,13 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       submittedAt: new Date().toISOString(),
       facilitatorName: $('#f-facilitator-name').value.trim(),
       businessOwnerName: $('#f-owner-name').value.trim(),
+      opportunityOwnerName: $('#f-opportunity-owner').value.trim(),
       executiveSponsorName: $('#f-executive-sponsor').value.trim(),
+      otherStakeholders: $('#f-other-stakeholders').value.trim(),
       businessOwnerTeam: $('#f-owner-team').value.trim(),
+      impactedBusinessFunctions: $$('#f-impacted-functions option')
+        .filter((o) => o.selected)
+        .map((o) => o.value),
       // Always the submission date - there's no date field for the
       // facilitator to fill in.
       interviewDate: new Date().toISOString().slice(0, 10),
@@ -1157,6 +1308,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       businessArea: currentOpportunity.businessArea,
       businessGoal: currentOpportunity.businessGoal,
       relevantTeams: currentOpportunity.relevantTeams,
+      description: $('#f-description').value.trim(),
+      outOfScope: $('#f-out-of-scope').value.trim(),
       scores: Object.assign({}, currentAnswers),
       comments: Object.assign({}, currentComments),
       impactScore: impact,
@@ -1226,10 +1379,15 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     currentComments = {};
     $('#f-opportunity').value = '';
     $('#f-owner-name').value = '';
+    $('#f-opportunity-owner').value = '';
     $('#f-executive-sponsor').value = '';
+    $('#f-other-stakeholders').value = '';
     $('#f-owner-team').value = '';
+    $$('#f-impacted-functions option').forEach((opt) => { opt.selected = false; });
     $('#f-opportunity-other-name').value = '';
     $('#opportunity-other-field').hidden = true;
+    $('#f-description').value = '';
+    $('#f-out-of-scope').value = '';
     renderOpportunityContext();
     renderFactorsCard();
     updateLiveScores();
@@ -1448,7 +1606,13 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       el('div', { class: 'detail-stakeholders' }, [
         `Business Owner: ${record.businessOwnerName}${record.businessOwnerTeam ? ` (${record.businessOwnerTeam})` : ''}`,
         el('br'),
+        `Opportunity Owner: ${record.opportunityOwnerName || '—'}`,
+        el('br'),
         `Executive Sponsor: ${record.executiveSponsorName || '—'}`,
+        el('br'),
+        `Other Stakeholders: ${record.otherStakeholders || '—'}`,
+        el('br'),
+        `Impacted Business Functions: ${(record.impactedBusinessFunctions || []).join(', ') || '—'}`,
         el('br'),
         `Facilitator: ${record.facilitatorName}`,
         el('br'),

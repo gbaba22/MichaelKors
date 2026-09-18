@@ -8,15 +8,26 @@ Michael Kors / Capri framework. No install, no server, no database: open
 
 1. **Open `index.html`** (double-click it, or drag it into a browser tab).
 2. **AI Discovery**: fill in the **Stakeholders for Discovery** details
-   (Facilitator Name, Business Owner Name, Executive Sponsor Name,
-   Business Function), pick an AI opportunity, and score all 10 factors
-   using the plain-language labels shown for each level. Every option shows
-   the rubric wording for that level, and each factor has an optional
-   comment box for any context worth capturing alongside the score. Below
-   the comment box, a collapsible **Guiding questions** list offers 1-12
-   reference questions per factor to help gauge which score fits - purely
-   reference material, nothing is saved from it. The Estimated Score panel
-   updates as you go.
+   (Facilitator Name, Business Function, Business Owner Name, Opportunity
+   Owner Name, Executive Sponsor Name, Impacted Business Functions - a
+   multi-select - and Other Stakeholders), pick an AI opportunity, and
+   score all 10 factors using the plain-language labels shown for each
+   level. Every option shows the rubric wording for that level, and each
+   factor has an optional comment box for any context worth capturing
+   alongside the score. Below the comment box, a collapsible **Guiding
+   questions** list offers 1-12 reference questions per factor to help
+   gauge which score fits - purely reference material, nothing is saved
+   from it. Financial Impact's subtitle notes that it's estimating hard
+   impact only. Below the opportunity picker, a collapsed **Description &
+   Out of Scope** section holds two optional free-text fields for whatever
+   context isn't always relevant. The Estimated Score panel updates as you
+   go.
+   - **Load previous response…** (next to the "AI Opportunity" heading)
+     re-opens a previously saved `.json` - either a single response file
+     or the accumulated multi-response file (in which case you're asked
+     which one to load) - filling in every stakeholder field, the
+     opportunity, Description/Out of Scope, and all 10 scores, so you can
+     review or continue an earlier interview.
 3. Click **Submit Assessment**.
    - **In Chrome or Edge**, the first time you submit you'll be asked to
      choose (or create) a folder. From then on every submission is saved
@@ -46,7 +57,8 @@ Michael Kors / Capri framework. No install, no server, no database: open
    You'll see the **Loaded Opportunities Summary** stat tiles, **By
    Individual Discovery** (every response, including Executive Sponsor,
    with a **More details** link per row opening every factor's score,
-   rubric wording, and comment), a **By AI Opportunity** rollup (mean
+   rubric wording, and comment, plus Opportunity Owner, Other Stakeholders,
+   and Impacted Business Functions), a **By AI Opportunity** rollup (mean
    Impact/Feasibility/Overall across however many people scored it), and
    an Impact-vs-Feasibility chart colored by quadrant (green = high
    impact + high feasibility, blue = high impact only, orange = high
