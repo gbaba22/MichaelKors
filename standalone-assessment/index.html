@@ -206,8 +206,8 @@ details.data-source > summary::before { content: '▸ '; color: var(--ink-muted)
 details.data-source[open] > summary::before { content: '▾ '; }
 details.data-source .data-source-body { padding: 0 16px 16px; }
 
-details.guide-details { margin-top: 10px; }
-details.guide-details > summary { cursor: pointer; font-size: 0.8rem; color: var(--ink-muted); list-style: none; }
+details.guide-details { margin-top: 2px; }
+details.guide-details > summary { cursor: pointer; font-size: 0.82rem; color: var(--ink-muted); list-style: none; }
 details.guide-details > summary::-webkit-details-marker { display: none; }
 details.guide-details > summary::before { content: '▸ '; }
 details.guide-details[open] > summary::before { content: '▾ '; }
@@ -295,7 +295,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-19T00:16:11Z",
+  "generatedAt": "2026-09-19T00:59:43Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1035,8 +1035,26 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     return FACTOR_LABELS[factor.key]?.[levelIndex] ?? String(rawScore);
   }
 
-  /** Editorial notes appended to a factor's subtitle (after its workbook
-   * question), for scoping guidance that isn't part of the rubric itself. */
+  /** Editorial subtitle shown under each factor's name, in place of its
+   * workbook question - written to double as the one-line prompt a
+   * facilitator reads before scoring. A factor absent here (none
+   * currently) falls back to factor.question from the workbook; an empty
+   * string means intentionally no subtitle. */
+  const FACTOR_SUBTITLES = {
+    financial_impact: 'Does it grow revenue, improve margin, reduce cost or working capital, release productive capacity, or protect value?',
+    process_efficiency: 'Does it improve process time or reduce error rate?',
+    customer_experience: '',
+    strategic_priority: 'Does this opportunity directly or indirectly relate to our strategic priorities?',
+    data_readiness: 'Do we have the data required in a structured way to implement this solution?',
+    process_readiness: 'Are current business processes structured to safely support, integrate, and scale AI solutions?',
+    implementation_complexity: 'Does implementation involve integrations, cross team & cross project dependencies, reliability & observability, development, or testing complexities?',
+    risk_profile: 'Does the output have reversible or irreversible impact on internal users or customers? Does it involve PII data?',
+    capex_cost: 'Does it require capex to build the solution?',
+    opex_cost: 'Does it have ongoing operational costs?',
+  };
+
+  /** Editorial notes appended to a factor's subtitle, for scoping guidance
+   * that isn't part of the rubric itself. */
   const FACTOR_SUBTITLE_NOTES = {
     financial_impact: 'Only estimating hard impact',
   };
@@ -1562,8 +1580,30 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   function renderFactorBlock(factor) {
     const block = el('div', { class: 'factor-block', 'data-key': factor.key });
     block.appendChild(el('div', { class: 'factor-head' }, [el('span', { class: 'name' }, factor.name)]));
-    const subtitleParts = [factor.question, FACTOR_SUBTITLE_NOTES[factor.key]].filter(Boolean);
-    if (subtitleParts.length) block.appendChild(el('div', { class: 'factor-question' }, subtitleParts.join(' — ')));
+
+    // The subtitle IS the toggle: expanding it reveals the rest of the
+    // guiding questions for this factor, so there's one clickable prompt
+    // per factor instead of a subtitle plus a separate disclosure.
+    const subtitleBase = FACTOR_SUBTITLES[factor.key] ?? factor.question;
+    const questions = INTERVIEW_QUESTIONS[factor.key] || [];
+    const summaryParts = [subtitleBase, FACTOR_SUBTITLE_NOTES[factor.key]].filter(Boolean);
+    const summaryText = summaryParts.length ? summaryParts.join(' — ') : questions.length ? `Guiding questions (${questions.length})` : '';
+    if (summaryText) {
+      if (questions.length) {
+        block.appendChild(
+          el('details', { class: 'guide-details' }, [
+            el('summary', {}, summaryText),
+            el(
+              'ol',
+              { class: 'guide-list' },
+              questions.map((q) => el('li', {}, q)),
+            ),
+          ]),
+        );
+      } else {
+        block.appendChild(el('div', { class: 'factor-question' }, summaryText));
+      }
+    }
 
     const scale = el('div', { class: 'scale', role: 'radiogroup', 'aria-label': factor.name + ' score' });
     factor.levels.forEach((level, levelIndex) => {
@@ -1599,19 +1639,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     });
     block.appendChild(commentInput);
 
-    const questions = INTERVIEW_QUESTIONS[factor.key] || [];
-    if (questions.length) {
-      block.appendChild(
-        el('details', { class: 'guide-details' }, [
-          el('summary', {}, `Guiding questions (${questions.length})`),
-          el(
-            'ol',
-            { class: 'guide-list' },
-            questions.map((q) => el('li', {}, q)),
-          ),
-        ]),
-      );
-    }
     return block;
   }
 
