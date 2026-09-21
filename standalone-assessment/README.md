@@ -11,16 +11,16 @@ Michael Kors / Capri framework. No install, no server, no database: open
    (Facilitator Name, Business Function, Business Owner Name, Opportunity
    Owner Name, Executive Sponsor Name, Impacted Business Functions - a
    multi-select - and Other Stakeholders), pick an AI opportunity, and
-   score all 10 factors using the plain-language labels shown for each
+   score all 9 factors using the plain-language labels shown for each
    level. Every option shows the rubric wording for that level, and each
    factor has an optional comment box for any context worth capturing
-   alongside the score. Below the comment box, a collapsible **Guiding
-   questions** list offers 1-12 reference questions per factor to help
-   gauge which score fits - purely reference material, nothing is saved
-   from it. Financial Impact's subtitle notes that it's estimating hard
-   impact only. Below the opportunity picker, a collapsed **Description &
-   Out of Scope** section holds two optional free-text fields for whatever
-   context isn't always relevant. The Estimated Score panel updates as you
+   alongside the score. Each factor's subtitle is itself a collapsible
+   toggle - clicking it reveals 2-7 further **guiding questions** for that
+   factor, purely reference material to help gauge which score fits;
+   nothing is saved from it. Below the opportunity picker, a collapsed
+   **Description & Out of Scope** section holds two optional free-text
+   fields for whatever context isn't always relevant. The Estimated Score
+   panel updates as you
    go.
    - **Load previous response…** (next to the "AI Opportunity" heading)
      re-opens a previously saved `.json` - either a single response file
@@ -126,16 +126,16 @@ Faithful to the `Weights` and `Rubric` sheets in the source workbook:
 
 ```
 Impact      = Σ(score × weight) / Σ(weight)      over the 4 impact factors
-Feasibility = Σ(effective × weight) / Σ(weight)   over the 6 feasibility factors
+Feasibility = Σ(effective × weight) / Σ(weight)   over the 5 feasibility factors
                 where effective = inverted ? 100 - score : score
 Overall     = (Impact × impactWeight + Feasibility × feasibilityWeight)
               / (impactWeight + feasibilityWeight)
 ```
 
-Four feasibility factors are inverted (a high raw score is worse, so it's
+Three feasibility factors are inverted (a high raw score is worse, so it's
 flipped before weighting): **Implementation Complexity, Risk Profile, CapEx
-Cost, Annual OpEx Cost**. The other six factors are higher-is-better,
-including Data Readiness and Process Readiness. The form shows plain-language
+Cost**. The other six factors are higher-is-better, including Data
+Readiness and Process Readiness. The form shows plain-language
 labels (tailored per factor) instead of raw scores; the underlying 0/5/20/
 50/100 scale is only used for the backend calculation.
 

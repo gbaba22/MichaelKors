@@ -295,7 +295,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-19T00:59:43Z",
+  "generatedAt": "2026-09-21T23:06:19Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -572,7 +572,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       "question": "What incremental CapEx does this require?",
       "category": "feasibility",
       "inverted": true,
-      "weight": 0.1,
+      "weight": 0.2,
       "column": "M",
       "levels": [
         {
@@ -594,38 +594,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
         {
           "score": 100,
           "label": "> $500K"
-        }
-      ]
-    },
-    {
-      "key": "opex_cost",
-      "name": "Annual OpEx Cost",
-      "subtitle": "",
-      "question": "What incremental annual OpEx does this add?",
-      "category": "feasibility",
-      "inverted": true,
-      "weight": 0.1,
-      "column": "N",
-      "levels": [
-        {
-          "score": 0,
-          "label": "Negligible. Absorbed in existing run costs"
-        },
-        {
-          "score": 5,
-          "label": "<$20K annually"
-        },
-        {
-          "score": 20,
-          "label": "$20-50K annually"
-        },
-        {
-          "score": 50,
-          "label": "$50-300k annually"
-        },
-        {
-          "score": 100,
-          "label": ">300k Annually"
         }
       ]
     }
@@ -1013,8 +981,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
    * Impact/Feasibility/Overall calculation). Written per factor rather than
    * one shared ladder: each one describes the MAGNITUDE of the thing that
    * factor's question asks about, not a "good/bad" judgement - that's what
-   * keeps Implementation Complexity, Risk Profile, CapEx Cost and OpEx Cost
-   * honest, since for those four a high raw score is actually the *worst*
+   * keeps Implementation Complexity, Risk Profile and CapEx Cost honest,
+   * since for those three a high raw score is actually the *worst*
    * outcome ("Severe" risk, not "Excellent" risk). Falls back to the raw
    * score if a loaded config.json has factor keys this map doesn't know
    * about (e.g. a custom framework loaded via "Data source").
@@ -1029,7 +997,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     implementation_complexity: ['Minimal', 'Low', 'Moderate', 'High', 'Very High'],
     risk_profile: ['Minimal', 'Low', 'Moderate', 'High', 'Severe'],
     capex_cost: ['Negligible', 'Low', 'Moderate', 'High', 'Very High'],
-    opex_cost: ['Negligible', 'Low', 'Moderate', 'High', 'Very High'],
   };
   function scoreLabel(factor, levelIndex, rawScore) {
     return FACTOR_LABELS[factor.key]?.[levelIndex] ?? String(rawScore);
@@ -1050,7 +1017,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     implementation_complexity: 'Does implementation involve integrations, cross team & cross project dependencies, reliability & observability, development, or testing complexities?',
     risk_profile: 'Does the output have reversible or irreversible impact on internal users or customers? Does it involve PII data?',
     capex_cost: 'Does it require capex to build the solution?',
-    opex_cost: 'Does it have ongoing operational costs?',
   };
 
   /** Editorial notes appended to a factor's subtitle, for scoping guidance
@@ -1132,12 +1098,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     capex_cost: [
       'Would this need new software licenses, hardware, or infrastructure?',
       'Can it be built on tools/platforms already licensed today?',
-    ],
-    opex_cost: [
-      'What would it cost to run this ongoing - compute, licensing, API/usage fees, support?',
-      'Does cost scale with usage/volume, or is it fixed?',
-      'Would this need dedicated headcount or a vendor contract to operate?',
-      'Is this absorbed in an existing budget, or new incremental spend?',
     ],
   };
 

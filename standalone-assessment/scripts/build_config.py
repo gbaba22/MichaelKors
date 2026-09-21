@@ -14,7 +14,7 @@ system of record for the assessment model:
                   at each point.
   - "Assessment Template" -> the AI Opportunity catalog (columns A-D) and,
                   by column position, which factor each scoring column is
-                  (columns E-N).
+                  (columns E-M; column N is unused).
 
 Run this again any time the workbook changes. It writes:
   - source/config.json   (the framework as data, also loadable at runtime via
@@ -29,12 +29,12 @@ The three sheets spell factor names slightly differently (e.g. the
 Assessment Template header for "Implementation Complexity" differs from the
 Rubric/Weights sheets by a stray "/" and line break). Matching on text would
 be brittle, so this script relies on the one thing that IS guaranteed: all
-three sheets list the ten factors in the same fixed order -
+three sheets list the nine factors in the same fixed order -
     Financial Impact, Process Efficiency, Customer Experience, Strategic
     Priority  (impact, in that order)
     Data Readiness, Process Readiness, Implementation Complexity,
-    Risk Profile, CapEx Cost, Annual OpEx Cost  (feasibility, in that order)
-which is also the order of Assessment Template columns E-N. If a future
+    Risk Profile, CapEx Cost  (feasibility, in that order)
+which is also the order of Assessment Template columns E-M. If a future
 version of the workbook reorders factors, this script's FACTOR_ORDER table
 below is the one place to update.
 """
@@ -66,7 +66,6 @@ FACTOR_ORDER = [
     {"key": "implementation_complexity", "category": "feasibility", "inverted": True, "column": "K"},
     {"key": "risk_profile", "category": "feasibility", "inverted": True, "column": "L"},
     {"key": "capex_cost", "category": "feasibility", "inverted": True, "column": "M"},
-    {"key": "opex_cost", "category": "feasibility", "inverted": True, "column": "N"},
 ]
 
 # Curated "Business Function" options for the interview form's autocomplete
@@ -138,7 +137,7 @@ def read_rubric(wb) -> tuple[list[int], list[dict]]:
     scale = [int(as_number(v)) for v in header]
 
     factors = []
-    for row in range(2, 12):  # 10 factor rows
+    for row in range(2, 11):  # 9 factor rows
         raw_name = ws.cell(row, 1).value
         question = ws.cell(row, 2).value
         if raw_name is None:

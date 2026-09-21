@@ -1,6 +1,6 @@
 {
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-19T00:59:43Z",
+  "generatedAt": "2026-09-21T23:06:19Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -277,7 +277,7 @@
       "question": "What incremental CapEx does this require?",
       "category": "feasibility",
       "inverted": true,
-      "weight": 0.1,
+      "weight": 0.2,
       "column": "M",
       "levels": [
         {
@@ -299,38 +299,6 @@
         {
           "score": 100,
           "label": "> $500K"
-        }
-      ]
-    },
-    {
-      "key": "opex_cost",
-      "name": "Annual OpEx Cost",
-      "subtitle": "",
-      "question": "What incremental annual OpEx does this add?",
-      "category": "feasibility",
-      "inverted": true,
-      "weight": 0.1,
-      "column": "N",
-      "levels": [
-        {
-          "score": 0,
-          "label": "Negligible. Absorbed in existing run costs"
-        },
-        {
-          "score": 5,
-          "label": "<$20K annually"
-        },
-        {
-          "score": 20,
-          "label": "$20-50K annually"
-        },
-        {
-          "score": 50,
-          "label": "$50-300k annually"
-        },
-        {
-          "score": 100,
-          "label": ">300k Annually"
         }
       ]
     }
