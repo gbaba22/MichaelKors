@@ -346,12 +346,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     capex_cost: 'Does it require capex to build the solution?',
   };
 
-  /** Editorial notes appended to a factor's subtitle, for scoping guidance
-   * that isn't part of the rubric itself. */
-  const FACTOR_SUBTITLE_NOTES = {
-    financial_impact: 'Only estimating hard impact',
-  };
-
   /* ================================================ interview guide data =
    * Reference questions a facilitator can ask during discovery to gauge
    * which score band a factor belongs in. Sourced from the "Discovery
@@ -873,8 +867,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     // per factor instead of a subtitle plus a separate disclosure.
     const subtitleBase = FACTOR_SUBTITLES[factor.key] ?? factor.question;
     const questions = INTERVIEW_QUESTIONS[factor.key] || [];
-    const summaryParts = [subtitleBase, FACTOR_SUBTITLE_NOTES[factor.key]].filter(Boolean);
-    const summaryText = summaryParts.length ? summaryParts.join(' — ') : questions.length ? `Guiding questions (${questions.length})` : '';
+    const summaryText = subtitleBase || (questions.length ? `Guiding questions (${questions.length})` : '');
     if (summaryText) {
       if (questions.length) {
         block.appendChild(
