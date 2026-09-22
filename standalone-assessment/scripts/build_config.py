@@ -82,6 +82,7 @@ BUSINESS_FUNCTIONS = [
     "Store Operations",
     "eCommerce",
     "Customer Care",
+    "IT",
     "Other",
 ]
 
