@@ -1,6 +1,6 @@
 {
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-21T23:06:19Z",
+  "generatedAt": "2026-09-22T13:39:47Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -16,7 +16,7 @@
   "factors": [
     {
       "key": "financial_impact",
-      "name": "Financial Impact",
+      "name": "Net Financial Impact",
       "subtitle": "revenue/margin growth, loss prevention",
       "question": "How much annual financial impact (revenue, margin, or loss prevention) does this deliver?",
       "category": "impact",
