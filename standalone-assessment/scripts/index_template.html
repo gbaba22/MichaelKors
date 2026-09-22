@@ -817,8 +817,13 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     $('#f-out-of-scope').value = record.outOfScope || '';
     $('#opportunity-details-toggle').open = !!(record.description || record.outOfScope);
 
-    currentAnswers = Object.assign({}, record.scores || {});
-    currentComments = Object.assign({}, record.comments || {});
+    // Drop any score/comment key that isn't one of the current factors -
+    // a record saved under an older framework version (e.g. before a
+    // factor was removed) shouldn't carry a stale key forward, or it'll
+    // silently throw off the "N of X answered" count and block resubmit.
+    const validKeys = new Set(CONFIG.factors.map((f) => f.key));
+    currentAnswers = Object.fromEntries(Object.entries(record.scores || {}).filter(([k]) => validKeys.has(k)));
+    currentComments = Object.fromEntries(Object.entries(record.comments || {}).filter(([k]) => validKeys.has(k)));
 
     renderOpportunityContext();
     renderFactorsCard();
@@ -918,7 +923,11 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const impact = categoryScore(CONFIG.factors, currentAnswers, 'impact');
     const feasibility = categoryScore(CONFIG.factors, currentAnswers, 'feasibility');
     const overall = overallScore(impact, feasibility, CONFIG.overall);
-    const answered = Object.keys(currentAnswers).length;
+    // Count against CONFIG.factors, not raw currentAnswers keys - a loaded
+    // record from an older framework version can carry a stale score key
+    // for a since-removed factor, which would otherwise inflate this past
+    // the real total.
+    const answered = CONFIG.factors.filter((f) => currentAnswers[f.key] != null).length;
 
     card.innerHTML = '';
     card.appendChild(
@@ -970,7 +979,9 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     if (!btn) return;
     const ownerName = $('#f-owner-name').value.trim();
     const ownerTeam = $('#f-owner-team').value.trim();
-    const answered = Object.keys(currentAnswers).length;
+    // Count against CONFIG.factors, not raw currentAnswers keys - see the
+    // matching note in updateLiveScores().
+    const answered = CONFIG.factors.filter((f) => currentAnswers[f.key] != null).length;
     const opportunityReady = currentOpportunity && (currentOpportunity.id !== 'other' || currentOpportunity.name);
     const complete = ownerName && ownerTeam && opportunityReady && answered === CONFIG.factors.length;
     btn.disabled = !complete;
