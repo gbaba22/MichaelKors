@@ -295,7 +295,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-22T19:13:11Z",
+  "generatedAt": "2026-09-22T19:20:43Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -1322,8 +1322,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       el('option', { value: '' }, 'Select executive sponsor…'),
       ...CONFIG.executiveSponsors.map((name) => el('option', { value: name }, name)),
     ]);
-    const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
-    const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', required: true, list: 'team-options' });
+    const ownerName = el('input', { type: 'text', id: 'f-owner-name' });
+    const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', list: 'team-options' });
     const teamList = el('datalist', { id: 'team-options' }, CONFIG.teams.map((t) => el('option', { value: t })));
     const impactedFunctions = el(
       'select',
@@ -1342,7 +1342,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     grid.appendChild(el('label', { class: 'field' }, ['Other Stakeholders (optional)', otherStakeholders]));
 
     card.appendChild(grid);
-    [ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateSubmitEnabled));
     return card;
   }
 
@@ -1388,7 +1387,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       if (currentOpportunity && currentOpportunity.id === 'other') {
         currentOpportunity.name = otherNameInput.value.trim();
       }
-      updateSubmitEnabled();
     });
 
     select.addEventListener('change', () => {
@@ -1405,7 +1403,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       renderOpportunityContext();
       renderFactorsCard();
       updateLiveScores();
-      updateSubmitEnabled();
     });
 
     card.appendChild(el('label', { class: 'field', hidden: true }, ['Select an AI opportunity to score', select]));
@@ -1514,8 +1511,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
     // Drop any score/comment key that isn't one of the current factors -
     // a record saved under an older framework version (e.g. before a
-    // factor was removed) shouldn't carry a stale key forward, or it'll
-    // silently throw off the "N of X answered" count and block resubmit.
+    // factor was removed) shouldn't carry a stale key forward into a
+    // resubmission, or it'll throw off the "N of X answered" count.
     const validKeys = new Set(CONFIG.factors.map((f) => f.key));
     currentAnswers = Object.fromEntries(Object.entries(record.scores || {}).filter(([k]) => validKeys.has(k)));
     currentComments = Object.fromEntries(Object.entries(record.comments || {}).filter(([k]) => validKeys.has(k)));
@@ -1523,7 +1520,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     renderOpportunityContext();
     renderFactorsCard();
     updateLiveScores();
-    updateSubmitEnabled();
   }
 
   function buildFactorsCard() {
@@ -1582,7 +1578,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
             $$('.scale-option', scale).forEach((b) => b.setAttribute('aria-pressed', 'false'));
             btn.setAttribute('aria-pressed', 'true');
             updateLiveScores();
-            updateSubmitEnabled();
           },
         },
         [el('span', { class: 'score' }, scoreLabel(factor, levelIndex, level.score)), el('span', { class: 'desc' }, level.label)],
@@ -1651,7 +1646,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const row = el('div', { class: 'row' });
     const submitBtn = el(
       'button',
-      { class: 'primary', id: 'submit-btn', disabled: true, onclick: handleSubmit },
+      { class: 'primary', id: 'submit-btn', onclick: handleSubmit },
       'Submit Assessment',
     );
     const resetBtn = el('button', { class: 'ghost', onclick: resetOpportunityFields }, 'Clear this opportunity’s answers');
@@ -1666,20 +1661,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     currentComments = {};
     renderFactorsCard();
     updateLiveScores();
-    updateSubmitEnabled();
-  }
-
-  function updateSubmitEnabled() {
-    const btn = $('#submit-btn');
-    if (!btn) return;
-    const ownerName = $('#f-owner-name').value.trim();
-    const ownerTeam = $('#f-owner-team').value.trim();
-    // Count against CONFIG.factors, not raw currentAnswers keys - see the
-    // matching note in updateLiveScores().
-    const answered = CONFIG.factors.filter((f) => currentAnswers[f.key] != null).length;
-    const opportunityReady = currentOpportunity && (currentOpportunity.id !== 'other' || currentOpportunity.name);
-    const complete = ownerName && ownerTeam && opportunityReady && answered === CONFIG.factors.length;
-    btn.disabled = !complete;
   }
 
   /* ================================================ direct file saving ==
@@ -1970,7 +1951,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     // from its name so repeat submissions of the same typed-in name group
     // together in Analyze Results, the same way catalog ids do.
     const isOtherOpportunity = currentOpportunity.id === 'other';
-    const opportunityName = isOtherOpportunity ? $('#f-opportunity-other-name').value.trim() : currentOpportunity.name;
+    const opportunityName = (isOtherOpportunity ? $('#f-opportunity-other-name').value.trim() : currentOpportunity.name) || 'Untitled Opportunity';
     const opportunityId = isOtherOpportunity ? `other-${slugify(opportunityName)}` : currentOpportunity.id;
 
     const record = {
@@ -2055,6 +2036,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
         ? `Couldn’t save to the connected file (${fileSyncError}); downloaded "${opportunityName}" as a separate file instead.`
         : `Saved "${opportunityName}": JSON and CSV downloaded. Ready for the next interview.`;
     $('#submit-feedback').appendChild(el('span', { class: `notice ${noticeIsError ? 'error' : 'success'}` }, noticeText));
+    $('#submit-btn').disabled = false;
 
     // Move on to the next opportunity.
     currentOpportunity = freshOpportunity();
@@ -2072,7 +2054,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     renderOpportunityContext();
     renderFactorsCard();
     updateLiveScores();
-    updateSubmitEnabled();
   }
 
   function renderScoreView() {
@@ -2081,7 +2062,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     renderFactorsCard();
     updateLiveScores();
     renderFileSyncStatus();
-    updateSubmitEnabled();
   }
 
   /* ====================================================== COMBINE VIEW == */
