@@ -295,7 +295,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-22T13:57:17Z",
+  "generatedAt": "2026-09-22T17:11:50Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -954,6 +954,27 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     "Store Operations",
     "Supply Chain"
   ],
+  "executiveSponsors": [
+    "Anne Walsh (President, NA Retail)",
+    "Christopher Amplo (President, MK EMEA)",
+    "Corey Moran (CMO)",
+    "Daisuke Yamazaki (CEO)",
+    "Hannah Colman (CEO, Jimmy Choo)",
+    "Jenna Hendricks (Chief People Officer)",
+    "Jill Fishman (Onboarding Exec)",
+    "Jude Allan (SVP, CPO)",
+    "Jung Yoon (SVP, Global Production & Sourcing - MK)",
+    "Kevin Vuong (SVP - Global Store and Workplace Exp)",
+    "Mary Idol (SVP, MK Wholesale - The Americas)",
+    "Qin Shen (President, MK APAC)",
+    "Tyler Reddien (EVP, CFO and COO)",
+    "Jennifer Foy (Director, Strategic Planning & PM)",
+    "Nitin Chaudhary (SVP, CIO)",
+    "Alexis Verillac (SVP, Supply Chain)",
+    "Hannah",
+    "Andy",
+    "Helene (SVP, CMO)"
+  ],
   "businessAreas": [
     "Customer Care",
     "Finance",
@@ -1187,8 +1208,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   }
   function buildCsv(records) {
     const header = [
-      'Submitted At', 'Facilitator Name',
-      'Business Owner Name', 'Opportunity Owner Name', 'Executive Sponsor Name', 'Other Stakeholders',
+      'Submitted At',
+      'Business/Opportunity Owner', 'Executive Sponsor Name', 'Other Stakeholders',
       'Business Function', 'Impacted Business Functions', 'Interview Date',
       'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams', 'Description', 'Out of Scope',
       ...CONFIG.factors.map((f) => f.name),
@@ -1196,8 +1217,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       'Impact Score', 'Feasibility Score', 'AI Opportunity Score',
     ];
     const rows = records.map((r) => [
-      r.submittedAt, r.facilitatorName,
-      r.businessOwnerName, r.opportunityOwnerName, r.executiveSponsorName, r.otherStakeholders,
+      r.submittedAt,
+      r.businessOwnerName, r.executiveSponsorName, r.otherStakeholders,
       r.businessOwnerTeam, (r.impactedBusinessFunctions || []).join('; '), r.interviewDate,
       r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '), r.description, r.outOfScope,
       ...CONFIG.factors.map((f) => (r.scores[f.key] != null ? r.scores[f.key] : '')),
@@ -1273,7 +1294,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   });
 
   /* ======================================================== SCORE VIEW == */
-  let currentOpportunity = null;
+  const freshOpportunity = () => ({ id: 'other', name: '', businessArea: 'Other', businessGoal: '', relevantTeams: [] });
+  let currentOpportunity = freshOpportunity();
   let currentAnswers = {};
   let currentComments = {};
 
@@ -1296,12 +1318,13 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     card.appendChild(el('h2', {}, 'Stakeholders for Discovery'));
     const grid = el('div', { class: 'form-grid' });
 
-    const facilitatorName = el('input', { type: 'text', id: 'f-facilitator-name', required: true, autocomplete: 'name' });
+    const executiveSponsor = el('select', { id: 'f-executive-sponsor' }, [
+      el('option', { value: '' }, 'Select executive sponsor…'),
+      ...CONFIG.executiveSponsors.map((name) => el('option', { value: name }, name)),
+    ]);
+    const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
     const ownerTeam = el('input', { type: 'text', id: 'f-owner-team', required: true, list: 'team-options' });
     const teamList = el('datalist', { id: 'team-options' }, CONFIG.teams.map((t) => el('option', { value: t })));
-    const ownerName = el('input', { type: 'text', id: 'f-owner-name', required: true });
-    const opportunityOwnerName = el('input', { type: 'text', id: 'f-opportunity-owner' });
-    const executiveSponsor = el('input', { type: 'text', id: 'f-executive-sponsor' });
     const impactedFunctions = el(
       'select',
       { id: 'f-impacted-functions', multiple: true, size: 4 },
@@ -1309,19 +1332,17 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     );
     const otherStakeholders = el('input', { type: 'text', id: 'f-other-stakeholders', placeholder: 'Names, comma-separated' });
 
-    // Paired two-per-row: Facilitator+Business Function, Business Owner+
-    // Opportunity Owner (kept adjacent), Executive Sponsor+Impacted
-    // Functions, Other Stakeholders alone on its own row.
-    grid.appendChild(el('label', { class: 'field' }, ['Facilitator Name', facilitatorName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Business Function', ownerTeam, teamList]));
-    grid.appendChild(el('label', { class: 'field' }, ['Business Owner Name', ownerName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Opportunity Owner Name', opportunityOwnerName]));
-    grid.appendChild(el('label', { class: 'field' }, ['Executive Sponsor Name', executiveSponsor]));
+    // Paired two-per-row: Executive Sponsor+Business/Opportunity Owner,
+    // Owner's Business Function+Impacted Business Functions, Other
+    // Stakeholders alone on its own row.
+    grid.appendChild(el('label', { class: 'field' }, ['Executive Sponsor', executiveSponsor]));
+    grid.appendChild(el('label', { class: 'field' }, ['Business/Opportunity Owner', ownerName]));
+    grid.appendChild(el('label', { class: 'field' }, ["Owner's Business Function", ownerTeam, teamList]));
     grid.appendChild(el('label', { class: 'field' }, ['Impacted Business Functions', impactedFunctions]));
-    grid.appendChild(el('label', { class: 'field' }, ['Other Stakeholders', otherStakeholders]));
+    grid.appendChild(el('label', { class: 'field' }, ['Other Stakeholders (optional)', otherStakeholders]));
 
     card.appendChild(grid);
-    [facilitatorName, ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateSubmitEnabled));
+    [ownerName, ownerTeam].forEach((i) => i.addEventListener('input', updateSubmitEnabled));
     return card;
   }
 
@@ -1344,6 +1365,10 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       if (!areas.has(o.businessArea)) areas.set(o.businessArea, []);
       areas.get(o.businessArea).push(o);
     }
+    // Hidden: every response is now freely named rather than picked from
+    // the catalog, but the select stays wired up (and can be unhidden by
+    // removing the `hidden` attribute below) since it's still what lets a
+    // loaded older response's catalog metadata resolve correctly.
     const select = el('select', { id: 'f-opportunity' }, [
       el('option', { value: '' }, 'Choose an opportunity…'),
       ...Array.from(areas.entries()).map(([area, opps]) =>
@@ -1355,12 +1380,10 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       ),
       el('option', { value: 'other' }, 'Other (not in this list)'),
     ]);
+    select.value = 'other';
 
     const otherNameInput = el('input', { type: 'text', id: 'f-opportunity-other-name', placeholder: 'Name this AI opportunity' });
-    const otherNameField = el('label', { class: 'field', id: 'opportunity-other-field', hidden: true }, [
-      'New opportunity name',
-      otherNameInput,
-    ]);
+    const otherNameField = el('label', { class: 'field', id: 'opportunity-other-field' }, ['Opportunity Name', otherNameInput]);
     otherNameInput.addEventListener('input', () => {
       if (currentOpportunity && currentOpportunity.id === 'other') {
         currentOpportunity.name = otherNameInput.value.trim();
@@ -1369,14 +1392,11 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     });
 
     select.addEventListener('change', () => {
-      if (select.value === 'other') {
+      if (select.value === 'other' || select.value === '') {
         currentOpportunity = { id: 'other', name: otherNameInput.value.trim(), businessArea: 'Other', businessGoal: '', relevantTeams: [] };
-        otherNameField.hidden = false;
       } else {
         const id = Number(select.value);
         currentOpportunity = CONFIG.opportunities.find((o) => o.id === id) || null;
-        otherNameField.hidden = true;
-        otherNameInput.value = '';
       }
       currentAnswers = {};
       currentComments = {};
@@ -1388,7 +1408,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       updateSubmitEnabled();
     });
 
-    card.appendChild(el('label', { class: 'field' }, ['Select an AI opportunity to score', select]));
+    card.appendChild(el('label', { class: 'field', hidden: true }, ['Select an AI opportunity to score', select]));
     card.appendChild(otherNameField);
     card.appendChild(el('div', { id: 'opportunity-context' }));
 
@@ -1410,13 +1430,14 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const box = $('#opportunity-context');
     box.innerHTML = '';
     if (!currentOpportunity) return;
-    box.appendChild(
-      el('div', { class: 'row', style: 'margin-top: 4px;' }, [
-        el('span', { class: 'chip' }, currentOpportunity.businessArea),
-        currentOpportunity.businessGoal ? el('span', { class: 'chip' }, currentOpportunity.businessGoal) : null,
-        ...currentOpportunity.relevantTeams.map((t) => el('span', { class: 'chip' }, t)),
-      ]),
-    );
+    // "Other" is the default filler value, not meaningful catalog info -
+    // only show it (and the other chips) when there's something to say.
+    const chips = [
+      currentOpportunity.businessArea && currentOpportunity.businessArea !== 'Other' ? el('span', { class: 'chip' }, currentOpportunity.businessArea) : null,
+      currentOpportunity.businessGoal ? el('span', { class: 'chip' }, currentOpportunity.businessGoal) : null,
+      ...currentOpportunity.relevantTeams.map((t) => el('span', { class: 'chip' }, t)),
+    ].filter(Boolean);
+    if (chips.length) box.appendChild(el('div', { class: 'row', style: 'margin-top: 4px;' }, chips));
   }
 
   /** Loads a previously saved response's .json (a single response, or an
@@ -1469,9 +1490,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   }
 
   function loadRecordIntoForm(record) {
-    $('#f-facilitator-name').value = record.facilitatorName || '';
     $('#f-owner-name').value = record.businessOwnerName || '';
-    $('#f-opportunity-owner').value = record.opportunityOwnerName || '';
     $('#f-executive-sponsor').value = record.executiveSponsorName || '';
     $('#f-owner-team').value = record.businessOwnerTeam || '';
     $('#f-other-stakeholders').value = record.otherStakeholders || '';
@@ -1480,28 +1499,14 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       opt.selected = impactedSet.has(opt.value);
     });
 
-    const select = $('#f-opportunity');
-    const catalogMatch =
-      record.opportunityId != null
-        ? CONFIG.opportunities.find((o) => o.id === record.opportunityId || o.name === record.opportunityName)
-        : null;
-    if (catalogMatch) {
-      select.value = String(catalogMatch.id);
-      currentOpportunity = catalogMatch;
-      $('#opportunity-other-field').hidden = true;
-      $('#f-opportunity-other-name').value = '';
-    } else {
-      select.value = 'other';
-      currentOpportunity = {
-        id: 'other',
-        name: record.opportunityName || '',
-        businessArea: record.businessArea || 'Other',
-        businessGoal: record.businessGoal || '',
-        relevantTeams: record.relevantTeams || [],
-      };
-      $('#opportunity-other-field').hidden = false;
-      $('#f-opportunity-other-name').value = record.opportunityName || '';
-    }
+    currentOpportunity = {
+      id: 'other',
+      name: record.opportunityName || '',
+      businessArea: record.businessArea || 'Other',
+      businessGoal: record.businessGoal || '',
+      relevantTeams: record.relevantTeams || [],
+    };
+    $('#f-opportunity-other-name').value = record.opportunityName || '';
 
     $('#f-description').value = record.description || '';
     $('#f-out-of-scope').value = record.outOfScope || '';
@@ -1658,13 +1663,11 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   function updateSubmitEnabled() {
     const btn = $('#submit-btn');
     if (!btn) return;
-    const facilitatorName = $('#f-facilitator-name').value.trim();
     const ownerName = $('#f-owner-name').value.trim();
     const ownerTeam = $('#f-owner-team').value.trim();
     const answered = Object.keys(currentAnswers).length;
     const opportunityReady = currentOpportunity && (currentOpportunity.id !== 'other' || currentOpportunity.name);
-    const complete =
-      facilitatorName && ownerName && ownerTeam && opportunityReady && answered === CONFIG.factors.length;
+    const complete = ownerName && ownerTeam && opportunityReady && answered === CONFIG.factors.length;
     btn.disabled = !complete;
   }
 
@@ -1962,9 +1965,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       submittedAt: new Date().toISOString(),
-      facilitatorName: $('#f-facilitator-name').value.trim(),
       businessOwnerName: $('#f-owner-name').value.trim(),
-      opportunityOwnerName: $('#f-opportunity-owner').value.trim(),
       executiveSponsorName: $('#f-executive-sponsor').value.trim(),
       otherStakeholders: $('#f-other-stakeholders').value.trim(),
       businessOwnerTeam: $('#f-owner-team').value.trim(),
@@ -2044,19 +2045,17 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
         : `Saved "${opportunityName}": JSON and CSV downloaded. Ready for the next interview.`;
     $('#submit-feedback').appendChild(el('span', { class: `notice ${noticeIsError ? 'error' : 'success'}` }, noticeText));
 
-    // Move on to the next opportunity; keep facilitator details for the next interview.
-    currentOpportunity = null;
+    // Move on to the next opportunity.
+    currentOpportunity = freshOpportunity();
     currentAnswers = {};
     currentComments = {};
-    $('#f-opportunity').value = '';
+    $('#f-opportunity').value = 'other';
     $('#f-owner-name').value = '';
-    $('#f-opportunity-owner').value = '';
     $('#f-executive-sponsor').value = '';
     $('#f-other-stakeholders').value = '';
     $('#f-owner-team').value = '';
     $$('#f-impacted-functions option').forEach((opt) => { opt.selected = false; });
     $('#f-opportunity-other-name').value = '';
-    $('#opportunity-other-field').hidden = true;
     $('#f-description').value = '';
     $('#f-out-of-scope').value = '';
     renderOpportunityContext();
@@ -2156,14 +2155,14 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     if (!card) return;
     const records = allCombinedRecords();
     const distinctOpportunities = new Set(records.map((r) => r.opportunityId)).size;
-    const distinctFacilitators = new Set(records.map((r) => r.facilitatorName)).size;
+    const distinctOwners = new Set(records.map((r) => r.businessOwnerName)).size;
     card.innerHTML = '';
     card.appendChild(el('h2', {}, 'Loaded Opportunities Summary'));
     card.appendChild(
       el('div', { class: 'stat-row' }, [
         statPlain(records.length, 'Responses loaded', 'var(--series)'),
         statPlain(distinctOpportunities, 'Distinct opportunities', 'var(--cat-2)'),
-        statPlain(distinctFacilitators, 'Facilitators', 'var(--cat-3)'),
+        statPlain(distinctOwners, 'Business/Opportunity Owners', 'var(--cat-3)'),
         statPlain(combinedFiles.length, 'Files loaded', 'var(--cat-4)'),
       ]),
     );
@@ -2200,9 +2199,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     const columns = [
       { key: 'opportunityName', label: 'AI Opportunity' },
       { key: 'businessArea', label: 'Business Area' },
-      { key: 'businessOwnerName', label: 'Business Owner' },
+      { key: 'businessOwnerName', label: 'Business/Opportunity Owner' },
       { key: 'executiveSponsorName', label: 'Executive Sponsor' },
-      { key: 'facilitatorName', label: 'Facilitator' },
       { key: 'impactScore', label: 'Impact', num: true },
       { key: 'feasibilityScore', label: 'Feasibility', num: true },
       { key: 'overallScore', label: 'Overall', num: true },
@@ -2240,7 +2238,6 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
           el('td', { class: 'secondary-text' }, r.businessArea),
           el('td', {}, `${r.businessOwnerName} (${r.businessOwnerTeam || ''})`),
           el('td', { class: 'secondary-text' }, r.executiveSponsorName || ''),
-          el('td', { class: 'secondary-text' }, r.facilitatorName),
           el('td', { class: 'num' }, fmt(r.impactScore)),
           el('td', { class: 'num' }, fmt(r.feasibilityScore)),
           el('td', { class: 'num', style: 'font-weight: 600;' }, fmt(r.overallScore)),
@@ -2275,17 +2272,13 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     );
     body.appendChild(
       el('div', { class: 'detail-stakeholders' }, [
-        `Business Owner: ${record.businessOwnerName}${record.businessOwnerTeam ? ` (${record.businessOwnerTeam})` : ''}`,
-        el('br'),
-        `Opportunity Owner: ${record.opportunityOwnerName || '—'}`,
-        el('br'),
         `Executive Sponsor: ${record.executiveSponsorName || '—'}`,
+        el('br'),
+        `Business/Opportunity Owner: ${record.businessOwnerName}${record.businessOwnerTeam ? ` (${record.businessOwnerTeam})` : ''}`,
         el('br'),
         `Other Stakeholders: ${record.otherStakeholders || '—'}`,
         el('br'),
         `Impacted Business Functions: ${(record.impactedBusinessFunctions || []).join(', ') || '—'}`,
-        el('br'),
-        `Facilitator: ${record.facilitatorName}`,
         el('br'),
         `Submitted: ${new Date(record.submittedAt).toLocaleString()}`,
       ]),

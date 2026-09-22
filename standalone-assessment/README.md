@@ -7,27 +7,26 @@ Michael Kors / Capri framework. No install, no server, no database: open
 ## Using it
 
 1. **Open `index.html`** (double-click it, or drag it into a browser tab).
-2. **AI Discovery**: fill in the **Stakeholders for Discovery** details
-   (Facilitator Name, Business Function, Business Owner Name, Opportunity
-   Owner Name, Executive Sponsor Name, Impacted Business Functions - a
-   multi-select - and Other Stakeholders), pick an AI opportunity, and
-   score all 9 factors using the plain-language labels shown for each
-   level. Every option shows the rubric wording for that level, and each
-   factor has an optional comment box for any context worth capturing
-   alongside the score. Each factor's subtitle is itself a collapsible
-   toggle - clicking it reveals 2-7 further **guiding questions** for that
-   factor, purely reference material to help gauge which score fits;
-   nothing is saved from it. Below the opportunity picker, a collapsed
-   **Description & Out of Scope** section holds two optional free-text
-   fields for whatever context isn't always relevant. The Estimated Score
-   panel updates as you
-   go.
+2. **AI Discovery**: fill in the **Stakeholders for Discovery** details -
+   Executive Sponsor (a dropdown of named execs), Business/Opportunity
+   Owner, Owner's Business Function, Impacted Business Functions (a
+   multi-select), and Other Stakeholders (optional) - type the
+   **Opportunity Name**, and score all 9 factors using the plain-language
+   labels shown for each level. Every option shows the rubric wording for
+   that level, and each factor has an optional comment box for any context
+   worth capturing alongside the score. Each factor's subtitle is itself a
+   collapsible toggle - clicking it reveals 2-7 further **guiding
+   questions** for that factor, purely reference material to help gauge
+   which score fits; nothing is saved from it. Below the opportunity name,
+   a collapsed **Description & Out of Scope** section holds two optional
+   free-text fields for whatever context isn't always relevant. The
+   Estimated Score panel updates as you go.
    - **Load previous response…** (next to the "AI Opportunity" heading)
      re-opens a previously saved `.json` - either a single response file
      or the accumulated multi-response file (in which case you're asked
      which one to load) - filling in every stakeholder field, the
-     opportunity, Description/Out of Scope, and all 10 scores, so you can
-     review or continue an earlier interview.
+     opportunity name, Description/Out of Scope, and all 9 scores, so you
+     can review or continue an earlier interview.
 3. Click **Submit Assessment**.
    - **In Chrome or Edge**, the first time you submit you'll be asked to
      choose (or create) a folder. From then on every submission is saved
@@ -48,8 +47,8 @@ Michael Kors / Capri framework. No install, no server, no database: open
      own `.json` and `.csv` pair, exactly as before. The status card
      explains this and lets you connect a folder at any time to switch to
      direct saving for future submissions.
-   - The form clears for the next interview but keeps the facilitator's
-     name, since one sitting usually covers several interviews.
+   - The form fully clears after each submission, ready for the next
+     interview.
 4. To bring many people's responses together: open the **Analyze Results**
    tab and drop in the `.json` file(s) this tool has produced: either one
    laptop's whole accumulated file, or a batch of older per-submission
@@ -57,8 +56,8 @@ Michael Kors / Capri framework. No install, no server, no database: open
    You'll see the **Loaded Opportunities Summary** stat tiles, **By
    Individual Discovery** (every response, including Executive Sponsor,
    with a **More details** link per row opening every factor's score,
-   rubric wording, and comment, plus Opportunity Owner, Other Stakeholders,
-   and Impacted Business Functions), a **By AI Opportunity** rollup (mean
+   rubric wording, and comment, plus Other Stakeholders and Impacted
+   Business Functions), a **By AI Opportunity** rollup (mean
    Impact/Feasibility/Overall across however many people scored it), and
    an Impact-vs-Feasibility chart colored by quadrant (green = high
    impact + high feasibility, blue = high impact only, orange = high
@@ -172,13 +171,18 @@ scripts/
 - **The Analyze Results view only re-imports `.json`**, not `.csv`: the CSV
   is for opening directly in a spreadsheet, not for round-tripping through
   this tool.
-- **`Facilitator`/`Business owner` fields, not a team filter.** This build
-  assumes the CoE-interview flow (one facilitator scores any opportunity
-  while interviewing its business owner), so the opportunity picker is never
-  filtered by team.
-- **Business Function options are a fixed, curated list**
-  (`BUSINESS_FUNCTIONS` in `scripts/build_config.py`), not derived from the
-  workbook - edit that constant and rebuild to change the list.
+- **The AI Opportunity catalog is hidden, not removed.** Every response is
+  now freely named via the always-visible Opportunity Name field rather
+  than picked from the workbook's opportunity list; the catalog-driven
+  dropdown (and its business-area grouping) still exists in the page and
+  can be unhidden in `scripts/index_template.html` if picking from a fixed
+  list is ever wanted again. Loading an older response that *was* tied to
+  a catalog opportunity still works - its stored name just lands in the
+  same free-text field.
+- **Business Function and Executive Sponsor options are fixed, curated
+  lists** (`BUSINESS_FUNCTIONS` and `EXECUTIVE_SPONSORS` in
+  `scripts/build_config.py`), not derived from the workbook - edit those
+  constants and rebuild to change either list.
 - Direct-to-file saving uses the File System Access API (Chrome/Edge), with
   IndexedDB to remember the connected folder between reloads. Every browser
   tested (current Chrome/Edge/Firefox/Safari) still supports the fallback

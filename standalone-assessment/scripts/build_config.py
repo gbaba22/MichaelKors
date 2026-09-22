@@ -86,6 +86,31 @@ BUSINESS_FUNCTIONS = [
     "Other",
 ]
 
+# Curated Executive Sponsor list for the interview form's dropdown - kept
+# in the order given (not alphabetized), since it's not derived from the
+# workbook and may reflect an intentional grouping.
+EXECUTIVE_SPONSORS = [
+    "Anne Walsh (President, NA Retail)",
+    "Christopher Amplo (President, MK EMEA)",
+    "Corey Moran (CMO)",
+    "Daisuke Yamazaki (CEO)",
+    "Hannah Colman (CEO, Jimmy Choo)",
+    "Jenna Hendricks (Chief People Officer)",
+    "Jill Fishman (Onboarding Exec)",
+    "Jude Allan (SVP, CPO)",
+    "Jung Yoon (SVP, Global Production & Sourcing - MK)",
+    "Kevin Vuong (SVP - Global Store and Workplace Exp)",
+    "Mary Idol (SVP, MK Wholesale - The Americas)",
+    "Qin Shen (President, MK APAC)",
+    "Tyler Reddien (EVP, CFO and COO)",
+    "Jennifer Foy (Director, Strategic Planning & PM)",
+    "Nitin Chaudhary (SVP, CIO)",
+    "Alexis Verillac (SVP, Supply Chain)",
+    "Hannah",
+    "Andy",
+    "Helene (SVP, CMO)",
+]
+
 
 def split_name(raw: str) -> tuple[str, str]:
     """Splits 'Financial Impact \\n(revenue/margin...)' into name + subtitle."""
@@ -232,6 +257,7 @@ def build_config(workbook_path: Path) -> dict:
         "factors": factors,
         "opportunities": opportunities,
         "teams": teams,
+        "executiveSponsors": EXECUTIVE_SPONSORS,
         "businessAreas": business_areas,
         "checks": {
             "impactWeightSum": round(impact_sum, 6),
