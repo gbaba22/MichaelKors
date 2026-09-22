@@ -1,6 +1,6 @@
 {
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-22T13:49:43Z",
+  "generatedAt": "2026-09-22T13:57:17Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -26,7 +26,7 @@
       "levels": [
         {
           "score": 0,
-          "label": "Not measurable"
+          "label": "Not measurable or no impact"
         },
         {
           "score": 5,
@@ -34,15 +34,15 @@
         },
         {
           "score": 20,
-          "label": "$100\u2013500K annually"
+          "label": "$100\u2013300K annually"
         },
         {
           "score": 50,
-          "label": "$500K\u2013$2M annually"
+          "label": "$300K\u20131M annually"
         },
         {
           "score": 100,
-          "label": "> $2M annually"
+          "label": "> $1M annually"
         }
       ]
     },
@@ -282,19 +282,19 @@
       "levels": [
         {
           "score": 0,
-          "label": "None, Absorbed in existing licenses"
+          "label": "No additional CapEx"
         },
         {
           "score": 5,
-          "label": "<$100k"
+          "label": "<$50K"
         },
         {
           "score": 20,
-          "label": "$100\u2013300K"
+          "label": "$50K\u2013150K"
         },
         {
           "score": 50,
-          "label": "$300K\u2013$500K"
+          "label": "$150K\u2013$500K"
         },
         {
           "score": 100,
