@@ -1,6 +1,6 @@
 {
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-22T19:20:43Z",
+  "generatedAt": "2026-09-23T14:48:58Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -30,19 +30,19 @@
         },
         {
           "score": 5,
-          "label": "<$100K annually"
+          "label": "<$50K annually"
         },
         {
           "score": 20,
-          "label": "$100\u2013300K annually"
+          "label": "$50\u2013200K annually"
         },
         {
           "score": 50,
-          "label": "$300K\u20131M annually"
+          "label": "$200K\u2013700K annually"
         },
         {
           "score": 100,
-          "label": "> $1M annually"
+          "label": "> $700K annually"
         }
       ]
     },
@@ -290,15 +290,15 @@
         },
         {
           "score": 20,
-          "label": "$50K\u2013150K"
+          "label": "$50K\u2013200K"
         },
         {
           "score": 50,
-          "label": "$150K\u2013$500K"
+          "label": "$200K\u2013$700K"
         },
         {
           "score": 100,
-          "label": "> $500K"
+          "label": "> $700K"
         }
       ]
     }
