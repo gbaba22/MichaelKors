@@ -71,19 +71,21 @@ FACTOR_ORDER = [
 # Curated "Business Function" options for the interview form's autocomplete
 # (sorted alphabetically when written out - see build_config()).
 BUSINESS_FUNCTIONS = [
-    "Leadership",
-    "Legal",
-    "Planning & Procurement",
-    "Supply Chain",
-    "Marketing & Branding",
-    "Product & Engineering",
-    "Finance",
-    "Merchandising",
-    "Store Operations",
-    "eCommerce",
     "Customer Care",
-    "IT",
-    "Other",
+    "Digital / eCommerce",
+    "Finance",
+    "Leadership",
+    "Legal / Risk / Compliance",
+    "Marketing & Branding",
+    "Merchandising",
+    "Planning & Procurement",
+    "Production",
+    "Technology / IT / Data",
+    "Store Operations / Retail",
+    "Supply Chain",
+    "Corporate",
+    "Sales",
+    "Others",
 ]
 
 # Curated Executive Sponsor list for the interview form's dropdown - kept
