@@ -58,8 +58,10 @@ Michael Kors / Capri framework. No install, no server, no database: open
    You'll see the **Loaded Opportunities Summary** stat tiles, **By
    Individual Discovery** (every response, including Executive Sponsor,
    with a **More details** link per row opening every factor's score,
-   rubric wording, and comment, plus Other Stakeholders and Impacted
-   Business Functions), a **By AI Opportunity** rollup (mean
+   rubric wording, and comment, plus Other Stakeholders, Impacted Business
+   Functions, and (when filled in) an Opportunity Details section with
+   Brand, Business Priority, Problem Statement, Out of Scope, and Current
+   Handling), a **By AI Opportunity** rollup (mean
    Impact/Feasibility/Overall across however many people scored it), and
    an Impact-vs-Feasibility chart colored by quadrant (green = high
    impact + high feasibility, blue = high impact only, orange = high
