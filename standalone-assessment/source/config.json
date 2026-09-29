@@ -1,6 +1,6 @@
 {
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-24T13:17:54Z",
+  "generatedAt": "2026-09-29T13:55:43Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -681,6 +681,19 @@
     "Hannah",
     "Andy",
     "Helene (SVP, CMO)"
+  ],
+  "brands": [
+    "Michael Kors",
+    "Jimmy Choo",
+    "Both"
+  ],
+  "businessPriorities": [
+    "Strengthen brand desirability and cultural relevance",
+    "Create compelling, innovative and consumer-relevant products",
+    "Acquire, engage and retain consumers",
+    "Elevate experiences across stores and digital channels",
+    "Drive profitable and higher-quality revenue growth",
+    "Improve operational execution and productivity"
   ],
   "businessAreas": [
     "Customer Care",

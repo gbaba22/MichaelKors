@@ -88,6 +88,20 @@ BUSINESS_FUNCTIONS = [
     "Others",
 ]
 
+# Fixed list for the "Brand" field's dropdown - not derived from the workbook.
+BRANDS = ["Michael Kors", "Jimmy Choo", "Both"]
+
+# Fixed list for the "Business Priority" field's dropdown (pick up to 2) -
+# the six Capri business priorities, not derived from the workbook.
+BUSINESS_PRIORITIES = [
+    "Strengthen brand desirability and cultural relevance",
+    "Create compelling, innovative and consumer-relevant products",
+    "Acquire, engage and retain consumers",
+    "Elevate experiences across stores and digital channels",
+    "Drive profitable and higher-quality revenue growth",
+    "Improve operational execution and productivity",
+]
+
 # Curated Executive Sponsor list for the interview form's dropdown - kept
 # in the order given (not alphabetized), since it's not derived from the
 # workbook and may reflect an intentional grouping.
@@ -260,6 +274,8 @@ def build_config(workbook_path: Path) -> dict:
         "opportunities": opportunities,
         "teams": teams,
         "executiveSponsors": EXECUTIVE_SPONSORS,
+        "brands": BRANDS,
+        "businessPriorities": BUSINESS_PRIORITIES,
         "businessAreas": business_areas,
         "checks": {
             "impactWeightSum": round(impact_sum, 6),

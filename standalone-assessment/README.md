@@ -18,15 +18,17 @@ Michael Kors / Capri framework. No install, no server, no database: open
    collapsible toggle - clicking it reveals 2-7 further **guiding
    questions** for that factor, purely reference material to help gauge
    which score fits; nothing is saved from it. Below the opportunity name,
-   a collapsed **Description & Out of Scope** section holds two optional
-   free-text fields for whatever context isn't always relevant. The
-   Estimated Score panel updates as you go.
+   a collapsed **Additional Opportunity Details** section holds Brand
+   (Michael Kors / Jimmy Choo / Both), Business Priority (a multi-select
+   capped at 2 picks - choosing a 3rd drops the oldest), Problem Statement,
+   Out of Scope, and Current Handling (what systems, tools, or files are
+   used today) - all optional. The Estimated Score panel updates as you go.
    - **Load previous response…** (next to the "AI Opportunity" heading)
      re-opens a previously saved `.json` - either a single response file
      or the accumulated multi-response file (in which case you're asked
      which one to load) - filling in every stakeholder field, the
-     opportunity name, Description/Out of Scope, and all 9 scores, so you
-     can review or continue an earlier interview.
+     opportunity name, Additional Opportunity Details, and all 9 scores,
+     so you can review or continue an earlier interview.
 3. Click **Submit Assessment**.
    - **In Chrome or Edge**, the first time you submit you'll be asked to
      choose (or create) a folder. From then on every submission is saved

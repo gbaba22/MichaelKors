@@ -295,7 +295,7 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
 <script id="config-data" type="application/json">{
   "generatedFrom": "AI_Opportunity_Assessment_v2_WIP_3.xlsx",
-  "generatedAt": "2026-09-24T13:17:54Z",
+  "generatedAt": "2026-09-29T13:55:43Z",
   "generatedBy": "standalone-assessment/scripts/build_config.py",
   "scale": [
     0,
@@ -977,6 +977,19 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     "Andy",
     "Helene (SVP, CMO)"
   ],
+  "brands": [
+    "Michael Kors",
+    "Jimmy Choo",
+    "Both"
+  ],
+  "businessPriorities": [
+    "Strengthen brand desirability and cultural relevance",
+    "Create compelling, innovative and consumer-relevant products",
+    "Acquire, engage and retain consumers",
+    "Elevate experiences across stores and digital channels",
+    "Drive profitable and higher-quality revenue growth",
+    "Improve operational execution and productivity"
+  ],
   "businessAreas": [
     "Customer Care",
     "Finance",
@@ -1213,7 +1226,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       'Submitted At',
       'Business/Opportunity Owner', 'Executive Sponsor Name', 'Other Stakeholders',
       'Business Function', 'Impacted Business Functions', 'Interview Date',
-      'Business Area', 'AI Opportunity', 'Business Goal', 'Relevant Teams', 'Description', 'Out of Scope',
+      'Business Area', 'AI Opportunity', 'Brand', 'Business Priority', 'Business Goal', 'Relevant Teams',
+      'Problem Statement', 'Out of Scope', 'Current Handling',
       ...CONFIG.factors.map((f) => f.name),
       ...CONFIG.factors.map((f) => `${f.name} Comments`),
       'Impact Score', 'Feasibility Score', 'AI Opportunity Score',
@@ -1222,7 +1236,8 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       r.submittedAt,
       r.businessOwnerName, r.executiveSponsorName, r.otherStakeholders,
       r.businessOwnerTeam, (r.impactedBusinessFunctions || []).join('; '), r.interviewDate,
-      r.businessArea, r.opportunityName, r.businessGoal, (r.relevantTeams || []).join('; '), r.description, r.outOfScope,
+      r.businessArea, r.opportunityName, r.brand, (r.businessPriorities || []).join('; '), r.businessGoal, (r.relevantTeams || []).join('; '),
+      r.description, r.outOfScope, r.currentHandling,
       ...CONFIG.factors.map((f) => (r.scores[f.key] != null ? r.scores[f.key] : '')),
       ...CONFIG.factors.map((f) => (r.comments && r.comments[f.key]) || ''),
       r.impactScore, r.feasibilityScore, r.overallScore,
@@ -1300,6 +1315,11 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
   let currentOpportunity = freshOpportunity();
   let currentAnswers = {};
   let currentComments = {};
+  // Order (oldest first) the Business Priority multi-select's current
+  // picks were made in - shared across the select's own change handler,
+  // loadRecordIntoForm, and the various reset points, so "drop the oldest
+  // when a 3rd is picked" stays correct no matter how selections changed.
+  let priorityOrder = [];
 
   function buildScoreView() {
     viewScore.innerHTML = '';
@@ -1402,6 +1422,10 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       currentComments = {};
       $('#f-description').value = '';
       $('#f-out-of-scope').value = '';
+      $('#f-current-handling').value = '';
+      $('#f-brand').value = '';
+      $$('#f-business-priority option').forEach((opt) => { opt.selected = false; });
+      priorityOrder = [];
       renderOpportunityContext();
       renderFactorsCard();
       updateLiveScores();
@@ -1411,14 +1435,43 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     card.appendChild(otherNameField);
     card.appendChild(el('div', { id: 'opportunity-context' }));
 
+    const brandInput = el('select', { id: 'f-brand' }, [
+      el('option', { value: '' }, 'Select brand…'),
+      ...CONFIG.brands.map((b) => el('option', { value: b }, b)),
+    ]);
+
+    const priorityInput = el(
+      'select',
+      { id: 'f-business-priority', multiple: true, size: 6 },
+      CONFIG.businessPriorities.map((p) => el('option', { value: p }, p)),
+    );
+    // Native <select multiple> has no built-in max-selection - track
+    // selection order so picking a 3rd priority drops the oldest of the
+    // previous two rather than silently allowing an unbounded pick.
+    priorityInput.addEventListener('change', () => {
+      const selected = Array.from(priorityInput.selectedOptions).map((o) => o.value);
+      const added = selected.filter((v) => !priorityOrder.includes(v));
+      const stillSelected = priorityOrder.filter((v) => selected.includes(v));
+      priorityOrder = stillSelected.concat(added);
+      if (priorityOrder.length > 2) {
+        const drop = priorityOrder.shift();
+        const opt = Array.from(priorityInput.options).find((o) => o.value === drop);
+        if (opt) opt.selected = false;
+      }
+    });
+
     const descriptionInput = el('textarea', { id: 'f-description', rows: 2 });
     const outOfScopeInput = el('textarea', { id: 'f-out-of-scope', rows: 2 });
+    const currentHandlingInput = el('textarea', { id: 'f-current-handling', rows: 2, placeholder: 'Systems, tools or files used?' });
     card.appendChild(
       el('details', { class: 'data-source', id: 'opportunity-details-toggle' }, [
-        el('summary', {}, 'Description & Out of Scope (optional)'),
+        el('summary', {}, 'Additional Opportunity Details (optional)'),
         el('div', { class: 'data-source-body form-grid', style: 'padding-top: 4px;' }, [
-          el('label', { class: 'field' }, ['Description', descriptionInput]),
+          el('label', { class: 'field' }, ['Brand', brandInput]),
+          el('label', { class: 'field' }, ['Business Priority (pick up to 2)', priorityInput]),
+          el('label', { class: 'field' }, ['Problem Statement', descriptionInput]),
           el('label', { class: 'field' }, ['Out of Scope', outOfScopeInput]),
+          el('label', { class: 'field' }, ['Current Handling', currentHandlingInput]),
         ]),
       ]),
     );
@@ -1509,7 +1562,14 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
 
     $('#f-description').value = record.description || '';
     $('#f-out-of-scope').value = record.outOfScope || '';
-    $('#opportunity-details-toggle').open = !!(record.description || record.outOfScope);
+    $('#f-current-handling').value = record.currentHandling || '';
+    $('#f-brand').value = record.brand || '';
+    const prioritySet = new Set((record.businessPriorities || []).slice(0, 2));
+    $$('#f-business-priority option').forEach((opt) => {
+      opt.selected = prioritySet.has(opt.value);
+    });
+    priorityOrder = Array.from(prioritySet);
+    $('#opportunity-details-toggle').open = !!(record.description || record.outOfScope || record.currentHandling || record.brand || prioritySet.size);
 
     // Drop any score/comment key that isn't one of the current factors -
     // a record saved under an older framework version (e.g. before a
@@ -1976,6 +2036,11 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
       relevantTeams: currentOpportunity.relevantTeams,
       description: $('#f-description').value.trim(),
       outOfScope: $('#f-out-of-scope').value.trim(),
+      currentHandling: $('#f-current-handling').value.trim(),
+      brand: $('#f-brand').value,
+      businessPriorities: $$('#f-business-priority option')
+        .filter((o) => o.selected)
+        .map((o) => o.value),
       scores: Object.assign({}, currentAnswers),
       comments: Object.assign({}, currentComments),
       impactScore: impact,
@@ -2053,6 +2118,10 @@ dialog.detail-dialog::backdrop { background: rgba(11, 11, 11, 0.5); }
     $('#f-opportunity-other-name').value = '';
     $('#f-description').value = '';
     $('#f-out-of-scope').value = '';
+    $('#f-current-handling').value = '';
+    $('#f-brand').value = '';
+    $$('#f-business-priority option').forEach((opt) => { opt.selected = false; });
+    priorityOrder = [];
     renderOpportunityContext();
     renderFactorsCard();
     updateLiveScores();
