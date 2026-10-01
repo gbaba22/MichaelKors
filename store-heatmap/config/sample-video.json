@@ -1,0 +1,127 @@
+{
+  "store": {
+    "name": "Sample video (OpenCV vtest.avi)",
+    "width_m": 24,
+    "depth_m": 14,
+    "fixtures": []
+  },
+  "aisles": [
+    {
+      "id": "Z1",
+      "name": "Left walkway",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          8,
+          14
+        ],
+        [
+          0,
+          14
+        ]
+      ]
+    },
+    {
+      "id": "Z2",
+      "name": "Centre",
+      "polygon": [
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          16,
+          14
+        ],
+        [
+          8,
+          14
+        ]
+      ]
+    },
+    {
+      "id": "Z3",
+      "name": "Right walkway",
+      "polygon": [
+        [
+          16,
+          0
+        ],
+        [
+          24,
+          0
+        ],
+        [
+          24,
+          14
+        ],
+        [
+          16,
+          14
+        ]
+      ]
+    }
+  ],
+  "cameras": [
+    {
+      "id": "sample",
+      "source": "data/vtest.avi",
+      "calibration": {
+        "image": [
+          [
+            0,
+            150
+          ],
+          [
+            700,
+            95
+          ],
+          [
+            768,
+            480
+          ],
+          [
+            0,
+            260
+          ]
+        ],
+        "floor": [
+          [
+            0,
+            14
+          ],
+          [
+            24,
+            14
+          ],
+          [
+            24,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      }
+    }
+  ],
+  "processing": {
+    "sample_fps": 5,
+    "segment_minutes": 1,
+    "model": "yolo11n.pt",
+    "confidence": 0.3,
+    "grid_cell_m": 0.5
+  }
+}
